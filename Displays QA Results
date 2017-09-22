@@ -1,0 +1,595 @@
+
+
+
+Private Sub Add_to_Tracker_Button_Click()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''' This Sub is not actually being used right now. It '''''''
+''''''' was how I originally had the new data added to    '''''''
+''''''' the tracker. It deletes the old sheets in the QA  '''''''
+''''''' file and copies the sheets from the Data Entry    '''''''
+''''''' file into the QA file. This was kind of buggy so  '''''''
+''''''' I abandoned it for a different method. This is    '''''''
+''''''' here mostly for future reference.                 '''''''
+'''''''                            - Michael Sekigahama   '''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Dim lrBacti As Long   'Last Row Bacteria Worksheet
+Dim lrLD As Long     'Last Row LabBatch Worksheet
+Dim lrFD As Long
+Dim lrLB As Long
+Dim lrFB As Long
+Dim lrMPN As Long    'Last Row MPN_Table Worksheet
+Dim lrCL As Long    'Last Row Confidence_Limits Worksheet
+Dim lrCalc As Long  'Last Row Calculations Worksheet
+Dim x As Long       'Variable in Calibration Data Code
+Dim i As Integer
+Dim p As Integer
+
+
+Dim FD As Worksheet    'Field Duplicates Worksheet
+Dim LD As Worksheet   'Lab Duplicates Worksheet
+Dim LB As Worksheet     'Lab Blank Worksheet
+Dim FB As Worksheet     'Field Blank Worksheet
+Dim Calc As Worksheet   'Calculations Worksheet
+Dim Tracking As Workbook
+Dim Bacteria As Workbook
+
+
+Set Bacteria = Workbooks("Bacteria Data Entry Blank.xlsm")
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+Application.Cursor = xlWait
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+
+
+
+lrLD = Sheets("Lab Duplicates").Range("A" & Rows.Count).End(xlUp).Row
+
+If Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Lab Duplicates"). _
+    Cells(lrLD, "A").Value = RunID.Value Then
+    
+Workbooks.Open ("R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Bacti QA\R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx")
+DoEvents
+
+On Error Resume Next
+Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Lab Duplicates").Delete
+On Error GoTo 0
+
+Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Lab Duplicates").Copy _
+    Before:=Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Field Duplicates")
+
+End If
+
+lrFD = Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Field Duplicates").Range("A" & Rows.Count).End(xlUp).Row
+
+If Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Field Duplicates"). _
+    Cells(lrFD, "A").Value = RunID.Value Then
+
+    On Error Resume Next
+        Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Field Duplicates").Delete
+    On Error GoTo 0
+    
+    Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Field Duplicates").Copy _
+        After:=Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Lab Duplicates")
+End If
+
+lrLB = Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Lab Blank").Range("A" & Rows.Count).End(xlUp).Row
+
+If Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Lab Blank"). _
+    Cells(lrLB, "A").Value = RunID.Value Then
+
+    On Error Resume Next
+        Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Lab Blank").Delete
+    On Error GoTo 0
+    
+    Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Lab Blank").Copy _
+        After:=Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Field Duplicates")
+End If
+    
+lrFB = Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Field Blank").Range("A" & Rows.Count).End(xlUp).Row
+
+If Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Field Blank"). _
+    Cells(lrFB, "A").Value = RunID.Value Then
+
+    On Error Resume Next
+        Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Field Blank").Delete
+    On Error GoTo 0
+    
+    Workbooks("Bacteria Data Entry Blank.xlsm").Sheets("Field Blank").Copy _
+        After:=Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Sheets("Lab Blank")
+End If
+
+
+
+
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+
+
+If MsgBox("Your data has been added!", vbOKOnly, "Incoming Message...") Then
+
+Workbooks("R5S Bacteria QA Tracking Log BROKEN LINKS.xlsx").Close savechanges:=True
+Unload Me
+
+End If
+
+Application.Cursor = xlDefault
+End Sub
+
+Private Sub BL1_ECSCORE_FQA_Change()
+
+End Sub
+
+Private Sub CloseButton_Click()
+
+If MsgBox("Are you sure you want to close?", vbYesNo) = vbYes Then Unload Me
+
+End Sub
+
+
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+
+If CloseMode = 0 Then
+    Cancel = True
+    MsgBox "Please close the form with the 'Close' button on the form. Thanks a bunch.", vbCritical
+End If
+
+End Sub
+
+Private Sub RetrieveLabComments_Click()
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''' This sub copies the needed QA information for the  '''''
+''''' data entry spreadsheet onto the New Entry userform '''''
+''''' from the QA Results userform. It also inserts the  '''''
+''''' appropriate QA Code if necessary and correctly     '''''
+''''' identifies if the QA values are > or < each other. '''''
+''''' This all gets put into the final spreadsheet after '''''
+''''' the user hits submit on the New Entry userfrom.    '''''
+''''' Written by: Michael Sekigahama            07/12/17 '''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+Dim i As Integer
+Dim y As Integer
+Dim ufm As UserForm
+Dim qa As UserForm
+
+''''''''' Checks Total Coliform QA For Field Dup '''''''''''
+
+For i = 1 To 3
+    
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("TC" & i & "_DN_FQA").Value <> "" And _
+        qa.Controls("TC" & i & "_RLOG_FQA").Value <> "NA" And _
+        qa.Controls("TC" & i & "_RLOG_FQA").Value > qa.Controls("TC" & i & "_327_FQA").Value Then
+            
+        For y = 1 To 28
+        
+            If ufm.Controls("CN" & y).Value = qa.Controls("TC" & i & "_DN_FQA").Value Then
+                If ufm.Controls("DT" & y).Value = "FD" Then
+                    ufm.Controls("QAY" & y & "A").Value = "FDP"
+                    ufm.Controls("QAY" & y & "B").Value = "Rlog " & qa.Controls("TC" & i & "_RLOG_FQA").Value & " > " & qa.Controls("TC" & i & "_327_FQA").Value & " Does not meet MQO"
+                End If
+            End If
+            If ufm.Controls("CN" & y).Value = qa.Controls("TC" & i & "_ON_FQA").Value Then
+                ufm.Controls("QAY" & y & "B").Value = "Rlog " & qa.Controls("TC" & i & "_RLOG_FQA").Value & " > " & qa.Controls("TC" & i & "_327_FQA").Value & " Does not meet MQO"
+            End If
+        Next y
+    End If
+    
+        
+Next i
+
+
+'''' Identifies > or < for Total Coliform QA Values ''''''''''
+For i = 1 To 3
+
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("TC" & i & "_DN_FQA").Value <> "" And _
+        qa.Controls("TC" & i & "_RLOG_FQA").Value <> "NA" And _
+        qa.Controls("TC" & i & "_RLOG_FQA").Value <= qa.Controls("TC" & i & "_327_FQA").Value Then
+            
+        For y = 1 To 28
+           
+            If ufm.Controls("CN" & y).Value = qa.Controls("TC" & i & "_DN_FQA").Value Then
+                ufm.Controls("QAY" & y & "B").Value = "Rlog " & qa.Controls("TC" & i & "_RLOG_FQA").Value & " <= " & qa.Controls("TC" & i & "_327_FQA").Value
+            End If
+        Next y
+    End If
+
+        
+        
+''''''' Checks E. Coli QA For Field Dup ''''''''''''''''
+Next i
+
+For i = 1 To 3
+    
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("EC" & i & "_DN_FQA").Value <> "" And _
+        qa.Controls("EC" & i & "_RLOG_FQA").Value <> "NA" And _
+        qa.Controls("EC" & i & "_RLOG_FQA").Value > qa.Controls("EC" & i & "_327_FQA").Value Then
+            
+        For y = 1 To 28
+        
+            If ufm.Controls("CN" & y).Value = qa.Controls("EC" & i & "_DN_FQA").Value Then
+                If ufm.Controls("DT" & y).Value = "FD" Then
+                    ufm.Controls("QAYF" & y & "A").Value = "FDP"
+                    ufm.Controls("QAYF" & y & "B").Value = "Rlog " & qa.Controls("EC" & i & "_RLOG_FQA").Value & " > " & qa.Controls("EC" & i & "_327_FQA").Value & " Does not meet MQO"
+                End If
+            End If
+            If ufm.Controls("CN" & y).Value = qa.Controls("EC" & i & "_ON_FQA").Value Then
+                ufm.Controls("QAYF" & y & "B").Value = "Rlog " & qa.Controls("EC" & i & "_RLOG_FQA").Value & " > " & qa.Controls("EC" & i & "_327_FQA").Value & " Does not meet MQO"
+            End If
+        Next y
+    End If
+    
+        
+Next i
+
+''''''' Identifies > or < for E. Coli QA Values ''''''''''
+For i = 1 To 3
+
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("EC" & i & "_DN_FQA").Value <> "" And _
+        qa.Controls("EC" & i & "_RLOG_FQA").Value <> "NA" And _
+        qa.Controls("EC" & i & "_RLOG_FQA").Value <= qa.Controls("EC" & i & "_327_FQA").Value Then
+            
+        For y = 1 To 28
+           
+            If ufm.Controls("CN" & y).Value = qa.Controls("EC" & i & "_DN_FQA").Value Then
+                ufm.Controls("QAYF" & y & "B").Value = "Rlog " & qa.Controls("EC" & i & "_RLOG_FQA").Value & " <= " & qa.Controls("EC" & i & "_327_FQA").Value
+            End If
+        Next y
+    End If
+    
+        
+Next i
+
+''''''''' Checks Total Coliform QA For Lab Dup '''''''''''
+For i = 1 To 3
+    
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("TC" & i & "_DN_LQA").Value <> "" And _
+        qa.Controls("TC" & i & "_RLOG_LQA").Value <> "NA" And _
+        qa.Controls("TC" & i & "_RLOG_LQA").Value > qa.Controls("TC" & i & "_327_LQA").Value Then
+            
+        For y = 1 To 28
+        
+            If ufm.Controls("CN" & y).Value = qa.Controls("TC" & i & "_DN_LQA").Value Then
+                If ufm.Controls("DT" & y).Value = "FD" Then
+                    ufm.Controls("QAY" & y & "A").Value = "FDP"
+                    ufm.Controls("QAY" & y & "B").Value = "Rlog " & qa.Controls("TC" & i & "_RLOG_LQA").Value & " > " & qa.Controls("TC" & i & "_327_LQA").Value & " Does not meet MQO"
+                End If
+            End If
+            If ufm.Controls("CN" & y).Value = qa.Controls("TC" & i & "_ON_LQA").Value Then
+                ufm.Controls("QAY" & y & "B").Value = "Rlog " & qa.Controls("TC" & i & "_RLOG_LQA").Value & " > " & qa.Controls("TC" & i & "_327_LQA").Value & " Does not meet MQO"
+            End If
+        Next y
+    End If
+    
+        
+Next i
+
+'''' Identifies > or < for Total Coliform QA Values ''''''''''
+For i = 1 To 3
+
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("TC" & i & "_DN_LQA").Value <> "" And _
+        qa.Controls("TC" & i & "_RLOG_LQA").Value <> "NA" And _
+        qa.Controls("TC" & i & "_RLOG_LQA").Value <= qa.Controls("TC" & i & "_327_LQA").Value Then
+            
+        For y = 1 To 28
+           
+            If ufm.Controls("CN" & y).Value = qa.Controls("TC" & i & "_DN_LQA").Value Then
+                ufm.Controls("QAY" & y & "B").Value = "Rlog " & qa.Controls("TC" & i & "_RLOG_LQA").Value & " <= " & qa.Controls("TC" & i & "_327_LQA").Value
+            End If
+        Next y
+    End If
+        
+''''''' Checks E. Coli QA For Field Dup ''''''''''''''''
+Next i
+
+For i = 1 To 3
+    
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("EC" & i & "_DN_LQA").Value <> "" And _
+        qa.Controls("EC" & i & "_RLOG_LQA").Value <> "NA" And _
+        qa.Controls("EC" & i & "_RLOG_LQA").Value > qa.Controls("EC" & i & "_327_LQA").Value Then
+            
+        For y = 1 To 28
+        
+            If ufm.Controls("CN" & y).Value = qa.Controls("EC" & i & "_DN_LQA").Value Then
+                If ufm.Controls("DT" & y).Value = "FD" Then
+                    ufm.Controls("QAYF" & y & "A").Value = "FDP"
+                    ufm.Controls("QAYF" & y & "B").Value = "Rlog " & qa.Controls("EC" & i & "_RLOG_LQA").Value & " > " & qa.Controls("EC" & i & "_327_LQA").Value & " Does not meet MQO"
+                End If
+            End If
+            If ufm.Controls("CN" & y).Value = qa.Controls("EC" & i & "_ON_LQA").Value Then
+                ufm.Controls("QAYF" & y & "B").Value = "Rlog " & qa.Controls("EC" & i & "_RLOG_LQA").Value & " > " & qa.Controls("EC" & i & "_327_LQA").Value & " Does not meet MQO"
+            End If
+        Next y
+    End If
+    
+        
+Next i
+
+''''''' Identifies > or < for E. Coli QA Values ''''''''''
+For i = 1 To 3
+
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+    If qa.Controls("EC" & i & "_DN_LQA").Value <> "" And _
+        qa.Controls("EC" & i & "_RLOG_LQA").Value <> "NA" And _
+        qa.Controls("EC" & i & "_RLOG_LQA").Value <= qa.Controls("EC" & i & "_327_LQA").Value Then
+            
+        For y = 1 To 28
+           
+            If ufm.Controls("CN" & y).Value = qa.Controls("EC" & i & "_DN_LQA").Value Then
+                ufm.Controls("QAYF" & y & "B").Value = "Rlog " & qa.Controls("EC" & i & "_RLOG_LQA").Value & " <= " & qa.Controls("EC" & i & "_327_LQA").Value
+            End If
+        Next y
+    End If
+    
+        
+Next i
+
+
+If MsgBox("Comments Retrieved!", vbOKOnly, "Incoming Message...") Then
+End If
+
+End Sub
+
+Private Sub Label11_Click()
+
+End Sub
+
+Private Sub UserForm_Activate()
+Dim lrBacti As Long   'Last Row Bacteria Worksheet
+Dim lrLB As Long     'Last Row LabBatch Worksheet
+Dim lrCL As Long    'Last Row Confidence_Limits Worksheet
+Dim lrCalc As Long  'Last Row Calculations Worksheet
+Dim lrLD As Long    'Last Row Lab Duplicate Worksheet
+Dim lrFD As Long    'Last Row Field Duplicate Worksheet
+Dim lrFB As Long    'Last Row Field Blank Worksheet
+Dim x As Long       'Variable in Calibration Data Code
+Dim i As Integer
+Dim y As Integer
+Dim p, q, r, s, t As Integer
+Dim ufm As UserForm
+Dim qa As UserForm
+
+Set ufm = NewEntryUserForm
+Set qa = QAResults
+
+
+Dim Bacti As Worksheet    'Bacteria Worksheet
+Dim LB As Worksheet   'LabBatch Worksheet
+Dim MPN As Worksheet     'MPN_Table Worksheet
+Dim CL As Worksheet     'Confidence_Limits Worksheet
+Dim Calc As Worksheet   'Calculations Worksheet
+Dim LD As Worksheet     'Lab Duplicates Worksheet
+Dim FD As Worksheet     'Field Duplicates Worksheet
+Dim FB As Worksheet     'Field Blank Worksheet
+
+
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+QAResults.RunID.Value = NewEntryUserForm.SampleID.Value
+
+
+
+For i = 0 To 2
+
+lrLD = Sheets("Lab Duplicates").Range("A" & Rows.Count).End(xlUp).Row
+
+If LD.Cells(lrLD - i, "A").Value = RunID.Value Then
+    Controls("TC" & i + 1 & "_ON_LQA").Value = LD.Cells(lrLD - i, "N").Value
+    Controls("TC" & i + 1 & "_DN_LQA").Value = LD.Cells(lrLD - i, "O").Value
+    Controls("TC" & i + 1 & "_MPN1_LQA").Value = LD.Cells(lrLD - i, "V").Value
+    Controls("TC" & i + 1 & "_MPN1A_LQA").Value = LD.Cells(lrLD - i, "Y").Value
+    Controls("TC" & i + 1 & "_RLOG_LQA").Text = LD.Cells(lrLD - i, "AD").Text
+    Controls("TC" & i + 1 & "_327_LQA").Text = LD.Cells(lrLD - i, "AE").Text
+    If LD.Cells(lrLD - i, "AF").Value = "QA OK" Or LD.Cells(lrLD - i, "AF").Value = "> Value" Then
+        Controls("TC" & i + 1 & "_SCORE_LQA").Value = "Pass"
+        Controls("TC" & i + 1 & "_SCORE_LQA").BackColor = RGB(0, 153, 0)
+        Controls("TC" & i + 1 & "_SCORE_LQA").ForeColor = vbWhite
+        Else
+        Controls("TC" & i + 1 & "_SCORE_LQA").Value = "Needs Review"
+        Controls("TC" & i + 1 & "_SCORE_LQA").BackColor = RGB(204, 0, 0)
+        Controls("TC" & i + 1 & "_SCORE_LQA").ForeColor = vbWhite
+    End If
+    Controls("EC" & i + 1 & "_ON_LQA").Value = LD.Cells(lrLD - i, "N").Value
+    Controls("EC" & i + 1 & "_DN_LQA").Value = LD.Cells(lrLD - i, "O").Value
+    Controls("EC" & i + 1 & "_MPN1_LQA").Value = LD.Cells(lrLD - i, "AN").Value
+    Controls("EC" & i + 1 & "_MPN1A_LQA").Value = LD.Cells(lrLD - i, "AQ").Value
+    Controls("EC" & i + 1 & "_RLOG_LQA").Text = LD.Cells(lrLD - i, "AV").Text
+    Controls("EC" & i + 1 & "_327_LQA").Text = LD.Cells(lrLD - i, "AW").Text
+    If LD.Cells(lrLD - i, "AX").Value = "QA OK" Or LD.Cells(lrLD - i, "AX").Value = "> Value" Then
+        Controls("EC" & i + 1 & "_SCORE_LQA").Value = "Pass"
+        Controls("EC" & i + 1 & "_SCORE_LQA").BackColor = RGB(0, 153, 0)
+        Controls("EC" & i + 1 & "_SCORE_LQA").ForeColor = vbWhite
+        Else
+        Controls("EC" & i + 1 & "_SCORE_LQA").Value = "Needs Review"
+        Controls("EC" & i + 1 & "_SCORE_LQA").BackColor = RGB(204, 0, 0)
+        Controls("EC" & i + 1 & "_SCORE_LQA").ForeColor = vbWhite
+    End If
+
+End If
+
+Next i
+
+For i = 0 To 2
+
+lrFD = Sheets("Field Duplicates").Range("A" & Rows.Count).End(xlUp).Row
+
+If FD.Cells(lrFD - i, "A").Value = RunID.Value Then
+    Controls("TC" & i + 1 & "_ON_FQA").Value = FD.Cells(lrFD - i, "L").Value
+    Controls("TC" & i + 1 & "_DN_FQA").Value = FD.Cells(lrFD - i, "M").Value
+    Controls("TC" & i + 1 & "_MPN1_FQA").Value = FD.Cells(lrFD - i, "T").Value
+    Controls("TC" & i + 1 & "_MPN1A_FQA").Value = FD.Cells(lrFD - i, "W").Value
+    Controls("TC" & i + 1 & "_RLOG_FQA").Text = FD.Cells(lrFD - i, "AB").Text
+    Controls("TC" & i + 1 & "_327_FQA").Text = FD.Cells(lrFD - i, "AC").Text
+    If FD.Cells(lrFD - i, "AD").Value = "QA OK" Or FD.Cells(lrFD - i, "AD").Value = "> Value" Then
+        Controls("TC" & i + 1 & "_SCORE_FQA").Value = "Pass"
+        Controls("TC" & i + 1 & "_SCORE_FQA").BackColor = RGB(0, 153, 0)
+        Controls("TC" & i + 1 & "_SCORE_FQA").ForeColor = vbWhite
+        Else
+        Controls("TC" & i + 1 & "_SCORE_FQA").Value = "Needs Review"
+        Controls("TC" & i + 1 & "_SCORE_FQA").BackColor = RGB(204, 0, 0)
+        Controls("TC" & i + 1 & "_SCORE_FQA").ForeColor = vbWhite
+    End If
+    Controls("EC" & i + 1 & "_ON_FQA").Value = FD.Cells(lrFD - i, "L").Value
+    Controls("EC" & i + 1 & "_DN_FQA").Value = FD.Cells(lrFD - i, "M").Value
+    Controls("EC" & i + 1 & "_MPN1_FQA").Value = FD.Cells(lrFD - i, "AL").Value
+    Controls("EC" & i + 1 & "_MPN1A_FQA").Value = FD.Cells(lrFD - i, "AO").Value
+    Controls("EC" & i + 1 & "_RLOG_FQA").Text = FD.Cells(lrFD - i, "AT").Text
+    Controls("EC" & i + 1 & "_327_FQA").Text = FD.Cells(lrFD - i, "AU").Text
+    If FD.Cells(lrFD - i, "AV").Value = "QA OK" Or FD.Cells(lrFD - i, "AV").Value = "> Value" Then
+        Controls("EC" & i + 1 & "_SCORE_FQA").Value = "Pass"
+        Controls("EC" & i + 1 & "_SCORE_FQA").BackColor = RGB(0, 153, 0)
+        Controls("EC" & i + 1 & "_SCORE_FQA").ForeColor = vbWhite
+        Else
+        Controls("EC" & i + 1 & "_SCORE_FQA").Value = "Needs Review"
+        Controls("EC" & i + 1 & "_SCORE_FQA").BackColor = RGB(204, 0, 0)
+        Controls("EC" & i + 1 & "_SCORE_FQA").ForeColor = vbWhite
+    End If
+
+End If
+
+Next i
+
+For i = 0 To 2
+
+lrLB = Sheets("Lab Blank").Range("A" & Rows.Count).End(xlUp).Row
+
+If LB.Cells(lrLB - i, "A").Value = RunID.Value Then
+    Controls("BL" & i + 1 & "_ON_LQA").Value = LB.Cells(lrLB - i, "J").Value
+    Controls("BL" & i + 1 & "_TC_LQA").Value = LB.Cells(lrLB - i, "P").Value
+    If LB.Cells(lrLB - i, "Q").Value = "QA OK" Then
+        Controls("BL" & i + 1 & "_TCSCORE_LQA").Value = "Pass"
+        Controls("BL" & i + 1 & "_TCSCORE_LQA").BackColor = RGB(0, 153, 0)
+        Controls("BL" & i + 1 & "_TCSCORE_LQA").ForeColor = vbWhite
+        Else
+    If LB.Cells(lrLB - i, "Q").Value = "Needs Review" Then
+        Controls("BL" & i + 1 & "_TCSCORE_LQA").Value = "Needs Review"
+        Controls("BL" & i + 1 & "_TCSCORE_LQA").BackColor = RGB(204, 0, 0)
+        Controls("BL" & i + 1 & "_TCSCORE_LQA").ForeColor = vbWhite
+    End If
+    End If
+    Controls("BL" & i + 1 & "_ON_LQA").Value = LB.Cells(lrLB - i, "J").Value
+    Controls("BL" & i + 1 & "_EC_LQA").Value = LB.Cells(lrLB - i, "U").Value
+    If LB.Cells(lrLB - i, "V").Value = "QA OK" Then
+        Controls("BL" & i + 1 & "_ECSCORE_LQA").Value = "Pass"
+        Controls("BL" & i + 1 & "_ECSCORE_LQA").BackColor = RGB(0, 153, 0)
+        Controls("BL" & i + 1 & "_ECSCORE_LQA").ForeColor = vbWhite
+        Else
+    If LB.Cells(lrLB - i, "V").Value = "Needs Review" Then
+        Controls("BL" & i + 1 & "_ECSCORE_LQA").Value = "Needs Review"
+        Controls("BL" & i + 1 & "_ECSCORE_LQA").BackColor = RGB(204, 0, 0)
+        Controls("BL" & i + 1 & "_ECSCORE_LQA").ForeColor = vbWhite
+    End If
+    End If
+
+End If
+
+Next i
+
+For i = 0 To 2
+
+lrFB = Sheets("Field Blank").Range("A" & Rows.Count).End(xlUp).Row
+
+If FB.Cells(lrFB - i, "A").Value = RunID.Value Then
+    Controls("BL" & i + 1 & "_ON_FQA").Value = FB.Cells(lrFB - i, "J").Value
+    Controls("BL" & i + 1 & "_TC_FQA").Value = FB.Cells(lrFB - i, "P").Value
+    If FB.Cells(lrFB - i, "Q").Value = "QA OK" Then
+        Controls("BL" & i + 1 & "_TCSCORE_FQA").Value = "Pass"
+        Controls("BL" & i + 1 & "_TCSCORE_FQA").BackColor = RGB(0, 153, 0)
+        Controls("BL" & i + 1 & "_TCSCORE_FQA").ForeColor = vbWhite
+        Else
+    If FB.Cells(lrFB - i, "Q").Value = "Needs Review" Then
+        Controls("BL" & i + 1 & "_TCSCORE_FQA").Value = "Needs Review"
+        Controls("BL" & i + 1 & "_TCSCORE_FQA").BackColor = RGB(204, 0, 0)
+        Controls("BL" & i + 1 & "_TCSCORE_FQA").ForeColor = vbWhite
+    End If
+    End If
+    Controls("BL" & i + 1 & "_ON_FQA").Value = FB.Cells(lrFB - i, "J").Value
+    Controls("BL" & i + 1 & "_EC_FQA").Value = FB.Cells(lrFB - i, "U").Value
+    If FB.Cells(lrFB - i, "V").Value = "QA OK" Then
+        Controls("BL" & i + 1 & "_ECSCORE_FQA").Value = "Pass"
+        Controls("BL" & i + 1 & "_ECSCORE_FQA").BackColor = RGB(0, 153, 0)
+        Controls("BL" & i + 1 & "_ECSCORE_FQA").ForeColor = vbWhite
+        Else
+    If FB.Cells(lrFB - i, "V").Value = "Needs Review" Then
+        Controls("BL" & i + 1 & "_ECSCORE_FQA").Value = "Needs Review"
+        Controls("BL" & i + 1 & "_ECSCORE_FQA").BackColor = RGB(204, 0, 0)
+        Controls("BL" & i + 1 & "_ECSCORE_FQA").ForeColor = vbWhite
+    End If
+    End If
+
+End If
+
+Next i
+
+For i = 1 To 3
+
+    If Me.Controls("TC" & i & "_DN_FQA").Value <> "" And _
+        Me.Controls("TC" & i & "_RLOG_FQA").Value > Me.Controls("TC" & i & "_327_FQA").Value And _
+        Me.Controls("TC" & i & "_RLOG_FQA").Value <> "NA" Then
+            
+        For y = 1 To 14
+            If Me.Controls("TC" & i & "_DN_FQA").Value = ufm.Controls("CN" & y).Value Then
+                If ufm.Controls("DT" & y).Value = "LD" Then
+                    ufm.Controls("QAY" & y & "A").Value = "ILN"
+                        If ufm.Controls("DT " & y).Value = "FD" Then
+                            ufm.Controls("QAYF" & y & "B").Value = Me.Controls("TC" & i & "_RLOG_FQA").Value & ">" & Me.Controls("TC" & i & "_327_FQA").Value
+                        End If
+                End If
+            End If
+        Next y
+    End If
+        
+Next i
+            
+                
+            
+    
+
+    
+    
+
+
+
+
+
+
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub

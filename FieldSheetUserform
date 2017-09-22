@@ -1,0 +1,1771 @@
+Option Explicit
+Option Base 1
+Option Compare Text
+
+
+Private Sub SampleCollectionFrame_Click()
+
+End Sub
+
+Private Sub TestValuesButton_Click()
+
+
+'This section sets the test values
+
+    'Sample Collection Frame
+    StationCodeBox.Value = "TESTTEST"
+    AgencyCodeComboBox = "DWR-ND"
+    SampleDateBox.Value = "01/01/00"
+    FundingCodeComboBox = "00ZZZ00"
+    EventCodeComboBox = "WQ"
+    LabSampleIDBox = "MS170519"
+    LSnumber = "19"
+    SampleTimeBox.Value = "12:12"
+    ProjectCodeComboBox = "Testing000"
+    ProtocolCodeComboBox = "AGPRO_TEST"
+    UserInitialsBox = "MS"
+
+    'Sample Site Description Frame
+    OccupationMethodComboBox.Value = "Walk In"
+    LocationComboBox.Value = "Bank"
+    StartingBankComboBox.Value = "RB"
+    HydroModComboBox.Value = "None"
+    HydroModLocationComboBox.Value = ""
+    GeometryShapeComboBox.Value = "Point"
+
+    'Sample Purpose Frame
+    HabitatCheckBox.Value = True
+    WaterChemCheckBox.Value = True
+    FieldMeasureCheckBox.Value = True
+    WaterToxCheckBox.Value = False
+
+    'Personnel Frame
+    Personnel1ComboBox.Value = "Personnel1"
+    Personnel2ComboBox.Value = "Sekigahama, M."
+    
+    'Habitat Observations Frame
+    AnimalPresenceComboBox.Value = "yes"
+    WaterColorComboBox.Value = "cleartest"
+    DominantSubstrate1ComboBox.Value = "cobbletest"
+    DominantSubstrate2ComboBox.Value = "gravelTest"
+    EvidenceOfFireComboBox.Value = "notest"
+    ObservedFlowComboBox.Value = "normaltest"
+    ObsvChannelFlowComboBox.Value = "normaltest"
+    WaterOdorComboBox.Value = "nonetest"
+    SiteOdorComboBox.Value = "nonetest"
+    PrecipitationComboBox.Value = "nonetest"
+    PrecipitationRunoffComboBox.Value = "nonetest"
+    SkyCodeComboBox.Value = "cleartest"
+    WadeabilityComboBox.Value = "yestest"
+    WaterClarityComboBox.Value = "cleartest"
+    WindDirectionComboBox.Value = "NW"
+    BeaufortScaleComboBox.Value = "4"
+    
+    
+    'Field Measurements Frame
+    WaterTemp1Box.Value = "12.0"
+    WaterTemp2Box.Value = "13.0"
+    WaterTemp3Box.Value = "14.0"
+    SC1Box.Value = "22.0"
+    SC2Box.Value = "23.0"
+    SC3Box.Value = "24.0"
+    DO1Box.Value = "99.0"
+    DO2Box.Value = "99.8"
+    DO3Box.Value = "99.9"
+    pH1Box.Value = "7.0"
+    pH2Box.Value = "7.1"
+    pH3Box.Value = "7.2"
+    Turbidity1Box.Value = "13"
+    Turbidity2Box.Value = "13.5"
+    Turbidity3Box.Value = "13.6"
+    
+    'Samples Frame
+    FieldDupCheckBox.Value = False
+    FieldBlankCheckBox.Value = False
+    'LabDupCheckBox.Value = False
+    SampleCommentsBox.Value = "testtesttesttest"
+    ReplicateComboBox.Value = "1"
+    FailureComboBox.Value = "None"
+    SampleTypeComboBox.Value = "Grab"
+   
+   'Calibration Data Frame
+   CalDevice1ComboBox.Value = "device 1"
+   CalDevice2ComboBox.Value = "device 2"
+   CalDevice3ComboBox.Value = "device 3"
+   Device1TempCheckBox.Value = True
+   Device1SCCheckBox.Value = True
+   Device1DOCheckBox.Value = False
+   Device1pHCheckBox.Value = False
+   Device1TurbCheckBox.Value = False
+   Device2TempCheckBox.Value = False
+   Device2SCCheckBox.Value = False
+   Device2DOCheckBox.Value = True
+   Device2pHCheckBox.Value = True
+   Device2TurbCheckBox.Value = False
+   Device3TempCheckBox.Value = False
+   Device3SCCheckBox.Value = False
+   Device3DOCheckBox.Value = False
+   Device3pHCheckBox.Value = False
+   Device3TurbCheckBox.Value = True
+   CalDate1Box.Value = "01/01/00"
+   CalDate2Box.Value = "02/02/00"
+   CalDate3Box.Value = "03/03/00"
+   
+
+End Sub
+
+
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+
+If CloseMode = 0 Then
+    Cancel = True
+    MsgBox "Please close the form with button on the bottom.", vbCritical
+End If
+
+End Sub
+
+Private Sub CloseButton_Click()
+
+'closes the form window
+
+If MsgBox("Are you sure you want to close?", vbYesNo) = vbYes Then Unload Me
+
+
+End Sub
+
+Private Sub ClearButton_Click()
+
+'This instructs the form to reset to its blank default state
+
+If MsgBox("Are you sure you want to clear the form?", vbYesNo) = vbYes Then UserForm_Initialize
+
+End Sub
+
+
+
+Private Sub AddDataButton_Click()
+
+If MsgBox("You are about to add the entered data into the workbook. Do you wish to continue?", vbYesNo) = vbYes Then DataTransfer
+    
+End Sub
+
+
+Private Sub DataTransfer()
+
+'This sub instructs the form where to put all the entered values on the form
+'into the spreadsheet
+
+Dim lrLoc As Long   'Last Row Locations Worksheet
+Dim lrP As Long     'Last Row Personnel Worksheet
+Dim lrFC As Long    'Last Row FundingCode Worksheet
+Dim lrLC As Long    'Last Row LabCollection Worksheet
+Dim lrFR As Long    'Last Row FieldResults Worksheet
+Dim lrHR As Long    'Last Row HabitatResults Worksheet
+Dim x As Long       'Variable in Calibration Data Code
+
+
+
+Dim Loc As Worksheet    'Location Worksheet
+Dim Pers As Worksheet   'Personnel Worksheet
+Dim FC As Worksheet     'FundingCode Worksheet
+Dim LC As Worksheet     'LabCollection Worksheet
+Dim FR As Worksheet     'FieldResults Worksheet
+Dim HR As Worksheet     'HabitatResults Worksheet
+
+Dim LabCollectionCopy
+
+
+Set Loc = Sheets("Locations")
+Set Pers = Sheets("Personnel")
+Set FC = Sheets("FundingCode")
+Set LC = Sheets("LabCollection")
+Set FR = Sheets("FieldResults")
+Set HR = Sheets("HabitatResults")
+
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''This code tells the form where to insert all the'''''''''''''''
+''''''''''''''''''''''    data that's been entered into the form          '''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+    'This line finds the last empty row on the sheet
+        'lrLoc = Sheets("Locations").Range("A" & Rows.Count).End(xlUp).Row
+    
+    'The following section inserts the data from the form into their
+    'respective locations on the applicable worksheet, in this case
+    'the "Locations" worksheet
+        'Loc.Cells(lrLoc + 1, "A").Value = StationCodeBox.Value
+        'Loc.Cells(lrLoc + 1, "B").Value = SampleDateBox.Value
+        'Loc.Cells(lrLoc + 1, "C").Value = ProjectCodeComboBox.Value
+
+'''''This bit populates the Locations Worksheet''''''
+
+    lrLoc = Sheets("Locations").Range("A" & Rows.Count).End(xlUp).row
+    
+    Loc.Cells(lrLoc + 1, "A").Value = StationCodeBox.Value
+    Loc.Cells(lrLoc + 1, "B").Value = SampleDateBox.Value
+    Loc.Cells(lrLoc + 1, "C").Value = ProjectCodeComboBox.Value
+    Loc.Cells(lrLoc + 1, "D").Value = EventCodeComboBox.Value
+    Loc.Cells(lrLoc + 1, "E").Value = ProtocolCodeComboBox.Value
+    Loc.Cells(lrLoc + 1, "F").Value = AgencyCodeComboBox.Value
+    Loc.Cells(lrLoc + 1, "G").Value = SampleCommentsBox.Value
+    Loc.Cells(lrLoc + 1, "H").Value = LocationComboBox.Value
+    Loc.Cells(lrLoc + 1, "I").Value = GeometryShapeComboBox.Value
+    Loc.Cells(lrLoc + 1, "K").Value = LatitudeBox.Value
+    Loc.Cells(lrLoc + 1, "L").Value = LongitudeBox.Value
+    Loc.Cells(lrLoc + 1, "M").Value = DatumComboBox.Value
+    Loc.Cells(lrLoc + 1, "O").Value = ElevationBox.Value
+    Loc.Cells(lrLoc + 1, "P").Value = "ft"
+    Loc.Cells(lrLoc + 1, "U").Value = FailureComboBox.Value
+    Loc.Cells(lrLoc + 1, "W").Value = OccupationMethodComboBox.Value
+    Loc.Cells(lrLoc + 1, "X").Value = StartingBankComboBox.Value
+    Loc.Cells(lrLoc + 1, "AE").Value = HydroModComboBox.Value
+    Loc.Cells(lrLoc + 1, "AF").Value = HydroModLocationComboBox.Value
+    Loc.Cells(lrLoc + 1, "AH").Value = GPSComboBox.Value
+    Loc.Cells(lrLoc + 1, "AI").Value = GPSAccuracyBox.Value
+    Loc.Cells(lrLoc + 1, "AJ").Value = "ft"
+    Loc.Cells(lrLoc + 1, "AK").Value = UserInitialsBox.Value
+    Loc.Cells(lrLoc + 1, "AL").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    Loc.Cells(lrLoc + 1, "AM").Value = SampleTimeBox.Value
+    
+    '''''This part populates the Sample Purpose Values in Locations Worksheet''''''
+    
+    If HabitatCheckBox.Value = True Then Loc.Cells(lrLoc + 1, "T").Value = HabitatCheckBox.Caption
+    
+        If WaterChemCheckBox.Value = True Then Loc.Cells(lrLoc + 1, "T").Value = Loc.Cells(lrLoc + 1, "T").Value & ";" _
+        & WaterChemCheckBox.Caption
+    
+        If FieldMeasureCheckBox.Value = True Then Loc.Cells(lrLoc + 1, "T").Value = Loc.Cells(lrLoc + 1, "T").Value & ";" _
+        & FieldMeasureCheckBox.Caption
+            
+        If WaterToxCheckBox.Value = True Then Cells(lrLoc + 1, "T").Value = Loc.Cells(lrLoc + 1, "T").Value & ";" _
+        & WaterToxCheckBox.Caption
+    
+'''''This bit populates the Personnel Worksheet''''''
+    
+    lrP = Sheets("Personnel").Range("A" & Rows.Count).End(xlUp).row
+    
+    Pers.Cells(lrP + 1, "A").Value = StationCodeBox.Value
+    Pers.Cells(lrP + 1, "B").Value = SampleDateBox.Value
+    Pers.Cells(lrP + 1, "C").Value = ProjectCodeComboBox.Value
+    Pers.Cells(lrP + 1, "D").Value = EventCodeComboBox.Value
+    Pers.Cells(lrP + 1, "E").Value = ProtocolCodeComboBox.Value
+    Pers.Cells(lrP + 1, "F").Value = AgencyCodeComboBox.Value
+    Pers.Cells(lrP + 1, "G").Value = SampleCommentsBox.Value
+    Pers.Cells(lrP + 1, "I").Value = EventCodeComboBox.Value
+    Pers.Cells(lrP + 1, "H").Value = Personnel1ComboBox.Value & ";" & Personnel2ComboBox.Value
+    
+'''''This bit populates the FundingCode Worksheet''''''
+ 
+    lrFC = Sheets("FundingCode").Range("A" & Rows.Count).End(xlUp).row
+    
+    FC.Cells(lrFC + 1, "A").Value = StationCodeBox.Value
+    FC.Cells(lrFC + 1, "B").Value = SampleDateBox.Value
+    FC.Cells(lrFC + 1, "C").Value = ProjectCodeComboBox.Value
+    FC.Cells(lrFC + 1, "D").Value = EventCodeComboBox.Value
+    FC.Cells(lrFC + 1, "E").Value = ProtocolCodeComboBox.Value
+    FC.Cells(lrFC + 1, "F").Value = AgencyCodeComboBox.Value
+    FC.Cells(lrFC + 1, "G").Value = SampleCommentsBox.Value
+    FC.Cells(lrFC + 1, "H").Value = FundingCodeComboBox.Value
+    
+'''''This bit populates the LabCollection Worksheet'''''
+
+    lrLC = Sheets("LabCollection").Range("A" & Rows.Count).End(xlUp).row
+    
+    LC.Cells(lrLC + 1, "A").Value = StationCodeBox.Value
+    LC.Cells(lrLC + 1, "B").Value = SampleDateBox.Value
+    LC.Cells(lrLC + 1, "C").Value = ProjectCodeComboBox.Value
+    LC.Cells(lrLC + 1, "D").Value = EventCodeComboBox.Value
+    LC.Cells(lrLC + 1, "E").Value = ProtocolCodeComboBox.Value
+    LC.Cells(lrLC + 1, "F").Value = AgencyCodeComboBox.Value
+    LC.Cells(lrLC + 1, "G").Value = SampleCommentsBox.Value
+    LC.Cells(lrLC + 1, "H").Value = LocationComboBox.Value
+    LC.Cells(lrLC + 1, "I").Value = GeometryShapeComboBox.Value
+    LC.Cells(lrLC + 1, "J").Value = SampleTimeBox.Value
+    LC.Cells(lrLC + 1, "K").Value = "Water_Grab"
+    LC.Cells(lrLC + 1, "L").Value = "Grab"
+    LC.Cells(lrLC + 1, "M").Value = ReplicateComboBox.Value
+    LC.Cells(lrLC + 1, "N").Value = CollectionDeviceComboBox.Value
+    LC.Cells(lrLC + 1, "O").Value = "0.1"
+    LC.Cells(lrLC + 1, "P").Value = "m"
+    LC.Cells(lrLC + 1, "Q").Value = "Subsurface"
+    LC.Cells(lrLC + 1, "S").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    
+    If FieldDupCheckBox.Value = True Then LC.Cells(lrLC + 1, "A").EntireRow.Copy
+    If FieldDupCheckBox.Value = True Then LC.Cells(lrLC + 2, "A").Insert
+    If FieldDupCheckBox.Value = True Then LC.Cells(lrLC + 2, "K").Value = "Water_Grab"
+    If FieldDupCheckBox.Value = True Then LC.Cells(lrLC + 2, "L").Value = "FieldBLDup_Grab"
+    
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 1, "A").EntireRow.Copy
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 2, "A").Insert
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 2, "K").Value = "Not Applicable"
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 2, "L").Value = "FieldBlank"
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 2, "N").Value = "None"
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 2, "O").Value = "-88"
+    If FieldBlankCheckBox.Value = True Then LC.Cells(lrLC + 2, "Q").Value = "Not Applicable"
+        
+    'If LabDupCheckBox.Value = True Then LC.Cells(lrLC + 1, "A").EntireRow.Copy
+    'If LabDupCheckBox.Value = True Then LC.Cells(lrLC + 2, "A").Insert
+    
+
+'''''This bit populates the FieldResults Worksheet'''''
+
+    lrFR = Sheets("FieldResults").Range("A" & Rows.Count).End(xlUp).row
+    
+   '''''''''''''''This chunk enters the 3 Water Temp Values''''''''''''
+    If WaterTemp1Box.Value <> "" Then
+        FR.Cells(lrFR + 1, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 1, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 1, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 1, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 1, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 1, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 1, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 1, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 1, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 1, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 1, "K").Value = "Field"
+        FR.Cells(lrFR + 1, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 1, "M").Value = "0.1"
+        FR.Cells(lrFR + 1, "N").Value = "m"
+        FR.Cells(lrFR + 1, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 1, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 1, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 1, "S").Value = "Temperature"
+        FR.Cells(lrFR + 1, "T").Value = "None"
+        FR.Cells(lrFR + 1, "U").Value = "Deg C"
+        FR.Cells(lrFR + 1, "V").Value = "1"
+        FR.Cells(lrFR + 1, "W").Value = WaterTemp1Box.Value
+        FR.Cells(lrFR + 1, "X").Value = "="
+        FR.Cells(lrFR + 1, "Y").Value = "None"
+        FR.Cells(lrFR + 1, "AB").Value = "NA"
+        FR.Cells(lrFR + 1, "AC").Value = "NR"
+        FR.Cells(lrFR + 1, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 1, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+            
+            
+    If WaterTemp2Box.Value <> "" Then
+        FR.Cells(lrFR + 2, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 2, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 2, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 2, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 2, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 2, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 2, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 2, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 2, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 2, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 2, "K").Value = "Field"
+        FR.Cells(lrFR + 2, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 2, "M").Value = "0.1"
+        FR.Cells(lrFR + 2, "N").Value = "m"
+        FR.Cells(lrFR + 2, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 2, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 2, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 2, "S").Value = "Temperature"
+        FR.Cells(lrFR + 2, "T").Value = "None"
+        FR.Cells(lrFR + 2, "U").Value = "Deg C"
+        FR.Cells(lrFR + 2, "V").Value = "1"
+        FR.Cells(lrFR + 2, "W").Value = WaterTemp2Box.Value
+        FR.Cells(lrFR + 2, "X").Value = "="
+        FR.Cells(lrFR + 2, "Y").Value = "None"
+        FR.Cells(lrFR + 2, "AB").Value = "NA"
+        FR.Cells(lrFR + 2, "AC").Value = "NR"
+        FR.Cells(lrFR + 2, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 2, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+                    
+    If WaterTemp3Box.Value <> "" Then
+        FR.Cells(lrFR + 3, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 3, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 3, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 3, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 3, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 3, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 3, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 3, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 3, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 3, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 3, "K").Value = "Field"
+        FR.Cells(lrFR + 3, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 3, "M").Value = "0.1"
+        FR.Cells(lrFR + 3, "N").Value = "m"
+        FR.Cells(lrFR + 3, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 3, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 3, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 3, "S").Value = "Temperature"
+        FR.Cells(lrFR + 3, "T").Value = "None"
+        FR.Cells(lrFR + 3, "U").Value = "Deg C"
+        FR.Cells(lrFR + 3, "V").Value = "1"
+        FR.Cells(lrFR + 3, "W").Value = WaterTemp3Box.Value
+        FR.Cells(lrFR + 3, "X").Value = "="
+        FR.Cells(lrFR + 3, "Y").Value = "None"
+        FR.Cells(lrFR + 3, "AB").Value = "NA"
+        FR.Cells(lrFR + 3, "AC").Value = "NR"
+        FR.Cells(lrFR + 3, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 3, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+    
+    '''''''''''''''This chunk enters the 3 Spec Cond Values''''''''''''
+    If SC1Box.Value <> "" Then
+        FR.Cells(lrFR + 4, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 4, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 4, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 4, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 4, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 4, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 4, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 4, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 4, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 4, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 4, "K").Value = "Field"
+        FR.Cells(lrFR + 4, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 4, "M").Value = "0.1"
+        FR.Cells(lrFR + 4, "N").Value = "m"
+        FR.Cells(lrFR + 4, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 4, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 4, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 4, "S").Value = "SpecificConductivity"
+        FR.Cells(lrFR + 4, "T").Value = "Total"
+        FR.Cells(lrFR + 4, "U").Value = "uS/cm"
+        FR.Cells(lrFR + 4, "V").Value = "1"
+        FR.Cells(lrFR + 4, "W").Value = SC1Box.Value
+        FR.Cells(lrFR + 4, "X").Value = "="
+        FR.Cells(lrFR + 4, "Y").Value = "None"
+        FR.Cells(lrFR + 4, "AB").Value = "NA"
+        FR.Cells(lrFR + 4, "AC").Value = "NR"
+        FR.Cells(lrFR + 4, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 4, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+            
+            
+    If SC2Box.Value <> "" Then
+        FR.Cells(lrFR + 5, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 5, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 5, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 5, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 5, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 5, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 5, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 5, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 5, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 5, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 5, "K").Value = "Field"
+        FR.Cells(lrFR + 5, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 5, "M").Value = "0.1"
+        FR.Cells(lrFR + 5, "N").Value = "m"
+        FR.Cells(lrFR + 5, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 5, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 5, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 5, "S").Value = "SpecificConductivity"
+        FR.Cells(lrFR + 5, "T").Value = "Total"
+        FR.Cells(lrFR + 5, "U").Value = "uS/cm"
+        FR.Cells(lrFR + 5, "V").Value = "1"
+        FR.Cells(lrFR + 5, "W").Value = SC2Box.Value
+        FR.Cells(lrFR + 5, "X").Value = "="
+        FR.Cells(lrFR + 5, "Y").Value = "None"
+        FR.Cells(lrFR + 5, "AB").Value = "NA"
+        FR.Cells(lrFR + 5, "AC").Value = "NR"
+        FR.Cells(lrFR + 5, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 5, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+                    
+    If SC3Box.Value <> "" Then
+        FR.Cells(lrFR + 6, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 6, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 6, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 6, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 6, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 6, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 6, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 6, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 6, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 6, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 6, "K").Value = "Field"
+        FR.Cells(lrFR + 6, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 6, "M").Value = "0.1"
+        FR.Cells(lrFR + 6, "N").Value = "m"
+        FR.Cells(lrFR + 6, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 6, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 6, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 6, "S").Value = "SpecificConductivity"
+        FR.Cells(lrFR + 6, "T").Value = "Total"
+        FR.Cells(lrFR + 6, "U").Value = "uS/cm"
+        FR.Cells(lrFR + 6, "V").Value = "1"
+        FR.Cells(lrFR + 6, "W").Value = SC3Box.Value
+        FR.Cells(lrFR + 6, "X").Value = "="
+        FR.Cells(lrFR + 6, "Y").Value = "None"
+        FR.Cells(lrFR + 6, "AB").Value = "NA"
+        FR.Cells(lrFR + 6, "AC").Value = "NR"
+        FR.Cells(lrFR + 6, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 6, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+    
+    '''''''''''''''This chunk enters the 3 Dissolved Oxygen Values''''''''''''
+    If DO1Box.Value <> "" Then
+        FR.Cells(lrFR + 7, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 7, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 7, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 7, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 7, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 7, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 7, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 7, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 7, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 7, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 7, "K").Value = "Field"
+        FR.Cells(lrFR + 7, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 7, "M").Value = "0.1"
+        FR.Cells(lrFR + 7, "N").Value = "m"
+        FR.Cells(lrFR + 7, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 7, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 7, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 7, "S").Value = "Oxygen, Dissolved"
+        FR.Cells(lrFR + 7, "T").Value = "Total"
+        FR.Cells(lrFR + 7, "U").Value = "mg/L"
+        FR.Cells(lrFR + 7, "V").Value = "1"
+        FR.Cells(lrFR + 7, "W").Value = DO1Box.Value
+        FR.Cells(lrFR + 7, "X").Value = "="
+        FR.Cells(lrFR + 7, "Y").Value = "None"
+        FR.Cells(lrFR + 7, "AB").Value = "NA"
+        FR.Cells(lrFR + 7, "AC").Value = "NR"
+        FR.Cells(lrFR + 7, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 7, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+            
+            
+    If DO2Box.Value <> "" Then
+        FR.Cells(lrFR + 8, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 8, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 8, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 8, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 8, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 8, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 8, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 8, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 8, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 8, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 8, "K").Value = "Field"
+        FR.Cells(lrFR + 8, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 8, "M").Value = "0.1"
+        FR.Cells(lrFR + 8, "N").Value = "m"
+        FR.Cells(lrFR + 8, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 8, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 8, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 8, "S").Value = "Oxygen, Dissolved"
+        FR.Cells(lrFR + 8, "T").Value = "Total"
+        FR.Cells(lrFR + 8, "U").Value = "mg/L"
+        FR.Cells(lrFR + 8, "V").Value = "1"
+        FR.Cells(lrFR + 8, "W").Value = DO2Box.Value
+        FR.Cells(lrFR + 8, "X").Value = "="
+        FR.Cells(lrFR + 8, "Y").Value = "None"
+        FR.Cells(lrFR + 8, "AB").Value = "NA"
+        FR.Cells(lrFR + 8, "AC").Value = "NR"
+        FR.Cells(lrFR + 8, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 8, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+                    
+    If DO3Box.Value <> "" Then
+        FR.Cells(lrFR + 9, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 9, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 9, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 9, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 9, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 9, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 9, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 9, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 9, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 9, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 9, "K").Value = "Field"
+        FR.Cells(lrFR + 9, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 9, "M").Value = "0.1"
+        FR.Cells(lrFR + 9, "N").Value = "m"
+        FR.Cells(lrFR + 9, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 9, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 9, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 9, "S").Value = "Oxygen, Dissolved"
+        FR.Cells(lrFR + 9, "T").Value = "Total"
+        FR.Cells(lrFR + 9, "U").Value = "mg/L"
+        FR.Cells(lrFR + 9, "V").Value = "1"
+        FR.Cells(lrFR + 9, "W").Value = DO3Box.Value
+        FR.Cells(lrFR + 9, "X").Value = "="
+        FR.Cells(lrFR + 9, "Y").Value = "None"
+        FR.Cells(lrFR + 9, "AB").Value = "NA"
+        FR.Cells(lrFR + 9, "AC").Value = "NR"
+        FR.Cells(lrFR + 9, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 9, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+    '''''''''''''''This chunk enters the 3 pH Values''''''''''''
+    If pH1Box.Value <> "" Then
+        FR.Cells(lrFR + 10, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 10, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 10, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 10, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 10, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 10, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 10, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 10, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 10, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 10, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 10, "K").Value = "Field"
+        FR.Cells(lrFR + 10, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 10, "M").Value = "0.1"
+        FR.Cells(lrFR + 10, "N").Value = "m"
+        FR.Cells(lrFR + 10, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 10, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 10, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 10, "S").Value = "pH"
+        FR.Cells(lrFR + 10, "T").Value = "None"
+        FR.Cells(lrFR + 10, "U").Value = "None"
+        FR.Cells(lrFR + 10, "V").Value = "1"
+        FR.Cells(lrFR + 10, "W").Value = pH1Box.Value
+        FR.Cells(lrFR + 10, "X").Value = "="
+        FR.Cells(lrFR + 10, "Y").Value = "None"
+        FR.Cells(lrFR + 10, "AB").Value = "NA"
+        FR.Cells(lrFR + 10, "AC").Value = "NR"
+        FR.Cells(lrFR + 10, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 10, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+            
+            
+    If pH2Box.Value <> "" Then
+        FR.Cells(lrFR + 11, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 11, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 11, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 11, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 11, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 11, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 11, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 11, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 11, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 11, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 11, "K").Value = "Field"
+        FR.Cells(lrFR + 11, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 11, "M").Value = "0.1"
+        FR.Cells(lrFR + 11, "N").Value = "m"
+        FR.Cells(lrFR + 11, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 11, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 11, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 11, "S").Value = "pH"
+        FR.Cells(lrFR + 11, "T").Value = "None"
+        FR.Cells(lrFR + 11, "U").Value = "None"
+        FR.Cells(lrFR + 11, "V").Value = "1"
+        FR.Cells(lrFR + 11, "W").Value = pH2Box.Value
+        FR.Cells(lrFR + 11, "X").Value = "="
+        FR.Cells(lrFR + 11, "Y").Value = "None"
+        FR.Cells(lrFR + 11, "AB").Value = "NA"
+        FR.Cells(lrFR + 11, "AC").Value = "NR"
+        FR.Cells(lrFR + 11, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 11, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+                    
+    If pH3Box.Value <> "" Then
+        FR.Cells(lrFR + 12, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 12, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 12, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 12, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 12, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 12, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 12, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 12, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 12, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 12, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 12, "K").Value = "Field"
+        FR.Cells(lrFR + 12, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 12, "M").Value = "0.1"
+        FR.Cells(lrFR + 12, "N").Value = "m"
+        FR.Cells(lrFR + 12, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 12, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 12, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 12, "S").Value = "pH"
+        FR.Cells(lrFR + 12, "T").Value = "None"
+        FR.Cells(lrFR + 12, "U").Value = "None"
+        FR.Cells(lrFR + 12, "V").Value = "1"
+        FR.Cells(lrFR + 12, "W").Value = pH3Box.Value
+        FR.Cells(lrFR + 12, "X").Value = "="
+        FR.Cells(lrFR + 12, "Y").Value = "None"
+        FR.Cells(lrFR + 12, "AB").Value = "NA"
+        FR.Cells(lrFR + 12, "AC").Value = "NR"
+        FR.Cells(lrFR + 12, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 12, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+    
+    '''''''''''''''This chunk enters the 3 Turbidity Values''''''''''''
+    If Turbidity1Box.Value <> "" Then
+        FR.Cells(lrFR + 13, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 13, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 13, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 13, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 13, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 13, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 13, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 13, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 13, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 13, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 13, "K").Value = "Field"
+        FR.Cells(lrFR + 13, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 13, "M").Value = "0.1"
+        FR.Cells(lrFR + 13, "N").Value = "m"
+        FR.Cells(lrFR + 13, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 13, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 13, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 13, "S").Value = "Turbidity"
+        FR.Cells(lrFR + 13, "T").Value = "Total"
+        FR.Cells(lrFR + 13, "U").Value = "NTU"
+        FR.Cells(lrFR + 13, "V").Value = "1"
+        FR.Cells(lrFR + 13, "W").Value = Turbidity1Box.Value
+        FR.Cells(lrFR + 13, "X").Value = "="
+        FR.Cells(lrFR + 13, "Y").Value = "None"
+        FR.Cells(lrFR + 13, "AB").Value = "NA"
+        FR.Cells(lrFR + 13, "AC").Value = "NR"
+        FR.Cells(lrFR + 13, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 13, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+            
+            
+    If Turbidity2Box.Value <> "" Then
+        FR.Cells(lrFR + 14, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 14, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 14, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 14, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 14, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 14, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 14, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 14, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 14, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 14, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 14, "K").Value = "Field"
+        FR.Cells(lrFR + 14, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 14, "M").Value = "0.1"
+        FR.Cells(lrFR + 14, "N").Value = "m"
+        FR.Cells(lrFR + 14, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 14, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 14, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 14, "S").Value = "Turbidity"
+        FR.Cells(lrFR + 14, "T").Value = "Total"
+        FR.Cells(lrFR + 14, "U").Value = "NTU"
+        FR.Cells(lrFR + 14, "V").Value = "1"
+        FR.Cells(lrFR + 14, "W").Value = Turbidity2Box.Value
+        FR.Cells(lrFR + 14, "X").Value = "="
+        FR.Cells(lrFR + 14, "Y").Value = "None"
+        FR.Cells(lrFR + 14, "AB").Value = "NA"
+        FR.Cells(lrFR + 14, "AC").Value = "NR"
+        FR.Cells(lrFR + 14, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 14, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+                    
+    If Turbidity3Box.Value <> "" Then
+        FR.Cells(lrFR + 15, "A").Value = StationCodeBox.Value
+        FR.Cells(lrFR + 15, "B").Value = SampleDateBox.Value
+        FR.Cells(lrFR + 15, "C").Value = ProjectCodeComboBox.Value
+        FR.Cells(lrFR + 15, "D").Value = EventCodeComboBox.Value
+        FR.Cells(lrFR + 15, "E").Value = ProtocolCodeComboBox.Value
+        FR.Cells(lrFR + 15, "F").Value = AgencyCodeComboBox.Value
+        FR.Cells(lrFR + 15, "G").Value = SampleCommentsBox.Value
+        FR.Cells(lrFR + 15, "H").Value = LocationComboBox.Value
+        FR.Cells(lrFR + 15, "I").Value = GeometryShapeComboBox.Value
+        FR.Cells(lrFR + 15, "J").Value = SampleTimeBox.Value
+        FR.Cells(lrFR + 15, "K").Value = "Field"
+        FR.Cells(lrFR + 15, "L").Value = ReplicateComboBox.Value
+        FR.Cells(lrFR + 15, "M").Value = "0.1"
+        FR.Cells(lrFR + 15, "N").Value = "m"
+        FR.Cells(lrFR + 15, "O").Value = "Subsurface"
+        FR.Cells(lrFR + 15, "Q").Value = "samplewater"
+        FR.Cells(lrFR + 15, "R").Value = "FieldMeasure"
+        FR.Cells(lrFR + 15, "S").Value = "Turbidity"
+        FR.Cells(lrFR + 15, "T").Value = "Total"
+        FR.Cells(lrFR + 15, "U").Value = "NTU"
+        FR.Cells(lrFR + 15, "V").Value = "1"
+        FR.Cells(lrFR + 15, "W").Value = Turbidity3Box.Value
+        FR.Cells(lrFR + 15, "X").Value = "="
+        FR.Cells(lrFR + 15, "Y").Value = "None"
+        FR.Cells(lrFR + 15, "AB").Value = "NA"
+        FR.Cells(lrFR + 15, "AC").Value = "NR"
+        FR.Cells(lrFR + 15, "AE").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+        FR.Cells(lrFR + 15, "AF").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    End If
+    
+    
+'''''This part inputs calibration data for Cal Device 1 if check boxes were marked'''''''
+
+    If Device1TempCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Temperature") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice1ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate1Box.Value
+            End If
+        Next
+    End If
+    
+    If Device1SCCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "SpecificConductivity") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice1ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate1Box.Value
+            End If
+        Next
+    End If
+    
+    If Device1DOCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Oxygen, Dissolved") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice1ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate1Box.Value
+            End If
+        Next
+    End If
+    
+    If Device1pHCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "pH") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice1ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate1Box.Value
+            End If
+        Next
+    End If
+    
+    If Device1TurbCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Turbidity") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice1ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate1Box.Value
+            End If
+        Next
+    End If
+    
+'''''This part inputs calibration data for Cal Device 2 if check boxes were marked'''''''
+    
+    If Device2TempCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Temperature") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice2ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate2Box.Value
+            End If
+        Next
+    End If
+    
+    If Device2SCCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "SpecificConductivity") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice2ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate2Box.Value
+            End If
+        Next
+    End If
+    
+    If Device2DOCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Oxygen, Dissolved") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice2ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate2Box.Value
+            End If
+        Next
+    End If
+    
+    If Device2pHCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "pH") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice2ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate2Box.Value
+            End If
+        Next
+    End If
+    
+    If Device2TurbCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Turbidity") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice2ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate2Box.Value
+            End If
+        Next
+    End If
+    
+'''''This part inputs calibration data for Cal Device 3 if check boxes were marked'''''''
+        
+    If Device3TempCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Temperature") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice3ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate3Box.Value
+            End If
+        Next
+    End If
+    
+    If Device3SCCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "SpecificConductivity") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice3ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate3Box.Value
+            End If
+        Next
+    End If
+    
+    If Device3DOCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Oxygen, Dissolved") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice3ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate3Box.Value
+            End If
+        Next
+    End If
+    
+    If Device3pHCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "pH") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice3ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate3Box.Value
+            End If
+        Next
+    End If
+    
+    If Device3TurbCheckBox.Value = True Then
+        For x = 1 To 65536
+            If InStr(1, FR.Range("$S$" & x), "Turbidity") > 0 Then
+                FR.Range("$Z$" & x) = CalDevice3ComboBox.Value
+                FR.Range("$AA$" & x) = CalDate3Box.Value
+            End If
+        Next
+    End If
+    
+''''''''    This bit deletes the blank rows in the FieldResults tab  '''''''
+''''''''    that show up when not all three measurement values are   '''''''
+''''''''    entered on the userform.                                 '''''''
+    
+    On Error Resume Next
+        FR.Range("A:A").SpecialCells(xlCellTypeBlanks).EntireRow.Delete
+  
+    
+'''''This bit populates the HabitatResults Worksheet''''''
+
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+
+' Adds Animal Presence
+    HR.Cells(lrHR + 1, "A").Value = StationCodeBox.Value
+    HR.Cells(lrHR + 1, "B").Value = SampleDateBox.Value
+    HR.Cells(lrHR + 1, "C").Value = ProjectCodeComboBox.Value
+    HR.Cells(lrHR + 1, "D").Value = EventCodeComboBox.Value
+    HR.Cells(lrHR + 1, "E").Value = ProtocolCodeComboBox.Value
+    HR.Cells(lrHR + 1, "F").Value = AgencyCodeComboBox.Value
+    HR.Cells(lrHR + 1, "G").Value = SampleCommentsBox.Value
+    HR.Cells(lrHR + 1, "H").Value = LocationComboBox.Value
+    HR.Cells(lrHR + 1, "I").Value = GeometryShapeComboBox.Value
+    HR.Cells(lrHR + 1, "J").Value = SampleTimeBox.Value
+    HR.Cells(lrHR + 1, "K").Value = "Habitat_Generic"
+    HR.Cells(lrHR + 1, "L").Value = ReplicateComboBox.Value
+    HR.Cells(lrHR + 1, "M").Value = ""
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "O").Value = "FieldObservations"
+    HR.Cells(lrHR + 1, "P").Value = "AnimalPresence"
+    HR.Cells(lrHR + 1, "Q").Value = "none"
+    HR.Cells(lrHR + 1, "R").Value = "none"
+    HR.Cells(lrHR + 1, "S").Value = AnimalPresenceComboBox.Value
+    HR.Cells(lrHR + 1, "U").Value = "="
+    HR.Cells(lrHR + 1, "V").Value = "none"
+    HR.Cells(lrHR + 1, "W").Value = "none"
+    HR.Cells(lrHR + 1, "X").Value = "NA"
+    HR.Cells(lrHR + 1, "Y").Value = "NA"
+    HR.Cells(lrHR + 1, "Z").Value = ""
+    HR.Cells(lrHR + 1, "AA").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+    HR.Cells(lrHR + 1, "AB").Value = LabSampleIDBox.Value & "-" & LSnumber.Value
+      
+'Adds Water Color
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "samplewater"
+    HR.Cells(lrHR + 1, "P").Value = "Color"
+    HR.Cells(lrHR + 1, "S").Value = WaterColorComboBox.Value
+    
+'Adds Dominant Substrate
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "DominantSubstrate"
+    HR.Cells(lrHR + 1, "S").Value = DominantSubstrate1ComboBox.Value
+    HR.Cells(lrHR + 1, "Z").Value = DominantSubstrate2ComboBox.Value
+  
+'Adds Evidence of Fire
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "Evidence of Fire"
+    HR.Cells(lrHR + 1, "S").Value = EvidenceOfFireComboBox.Value
+    
+'Adds Observed Flow
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "ObservedFlow"
+    HR.Cells(lrHR + 1, "S").Value = ObservedFlowComboBox.Value
+    
+'Adds Water Odor
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "samplewater"
+    HR.Cells(lrHR + 1, "P").Value = "Odor"
+    HR.Cells(lrHR + 1, "S").Value = WaterOdorComboBox.Value
+    
+'Adds Site Odor
+    lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "Odor"
+    HR.Cells(lrHR + 1, "S").Value = SiteOdorComboBox.Value
+    
+'Adds Other Presence
+    
+    If OP_None.Value = True Then
+        lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+        HR.Cells(lrHR, "A").EntireRow.Copy
+        HR.Cells(lrHR + 1, "A").Insert
+        HR.Cells(lrHR + 1, "N").Value = "habitat"
+        HR.Cells(lrHR + 1, "P").Value = "OtherPresence"
+        HR.Cells(lrHR + 1, "S").Value = "None"
+    End If
+    
+    If OP_Vascular.Value = True Then
+        lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+        HR.Cells(lrHR, "A").EntireRow.Copy
+        HR.Cells(lrHR + 1, "A").Insert
+        HR.Cells(lrHR + 1, "N").Value = "habitat"
+        HR.Cells(lrHR + 1, "P").Value = "OtherPresence"
+        HR.Cells(lrHR + 1, "S").Value = "Vascular"
+    End If
+    
+    If OP_Nonvascular.Value = True Then
+        lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+        HR.Cells(lrHR, "A").EntireRow.Copy
+        HR.Cells(lrHR + 1, "A").Insert
+        HR.Cells(lrHR + 1, "N").Value = "habitat"
+        HR.Cells(lrHR + 1, "P").Value = "OtherPresence"
+        HR.Cells(lrHR + 1, "S").Value = "Nonvascular"
+    End If
+
+    If OP_Foam.Value = True Then
+        lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+        HR.Cells(lrHR, "A").EntireRow.Copy
+        HR.Cells(lrHR + 1, "A").Insert
+        HR.Cells(lrHR + 1, "N").Value = "habitat"
+        HR.Cells(lrHR + 1, "P").Value = "OtherPresence"
+        HR.Cells(lrHR + 1, "S").Value = "Foam"
+    End If
+
+    If OP_OilySheen.Value = True Then
+        lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+        HR.Cells(lrHR, "A").EntireRow.Copy
+        HR.Cells(lrHR + 1, "A").Insert
+        HR.Cells(lrHR + 1, "N").Value = "habitat"
+        HR.Cells(lrHR + 1, "P").Value = "OtherPresence"
+        HR.Cells(lrHR + 1, "S").Value = "Oily Sheen"
+    End If
+    
+    If OP_Trash.Value = True Then
+        lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+        HR.Cells(lrHR, "A").EntireRow.Copy
+        HR.Cells(lrHR + 1, "A").Insert
+        HR.Cells(lrHR + 1, "N").Value = "habitat"
+        HR.Cells(lrHR + 1, "P").Value = "OtherPresence"
+        HR.Cells(lrHR + 1, "S").Value = "Trash"
+    End If
+    
+'Adds Precipitation
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "Precipitation"
+    HR.Cells(lrHR + 1, "S").Value = PrecipitationComboBox.Value
+    
+'Adds Precipitation Runoff
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "OverlandRunoffLast24hrs"
+    HR.Cells(lrHR + 1, "S").Value = PrecipitationRunoffComboBox.Value
+    
+'Adds Picture Information
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "PictureCode"
+    HR.Cells(lrHR + 1, "S").Value = PicturesComboBox.Value
+    
+'Adds Sky Code
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "SkyCode"
+    HR.Cells(lrHR + 1, "S").Value = SkyCodeComboBox.Value
+    
+'Adds Wadeability
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "Wadeability"
+    HR.Cells(lrHR + 1, "S").Value = WadeabilityComboBox.Value
+    
+'Adds Water Clarity
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "samplewater"
+    HR.Cells(lrHR + 1, "P").Value = "WaterClarity"
+    HR.Cells(lrHR + 1, "S").Value = WaterClarityComboBox.Value
+    
+'Adds Wind Direction
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "WindDirection"
+    HR.Cells(lrHR + 1, "S").Value = WindDirectionComboBox.Value
+    
+'Adds Beaufort Scale
+lrHR = Sheets("HabitatResults").Range("A" & Rows.Count).End(xlUp).row
+    HR.Cells(lrHR, "A").EntireRow.Copy
+    HR.Cells(lrHR + 1, "A").Insert
+    HR.Cells(lrHR + 1, "N").Value = "habitat"
+    HR.Cells(lrHR + 1, "P").Value = "BeaufortScale"
+    HR.Cells(lrHR + 1, "S").Value = BeaufortScaleComboBox.Value
+
+''''''This bit clears/sets some values for the form after the submit button is hit'''''''
+    
+    StationCodeBox.Value = ""
+    LSnumber = ""
+    SampleTimeBox = ""
+    SampleDateBox = ""
+    SampleCommentsBox = ""
+    FailureComboBox = "None"
+    LocationComboBox.Value = "Bank"
+    GeometryShapeComboBox.Value = "Point"
+    OccupationMethodComboBox.Value = "Walk In"
+    StartingBankComboBox.Value = ""
+    
+
+    'Samples Frame
+    FieldDupCheckBox.Value = False
+    FieldBlankCheckBox.Value = False
+'    LabDupCheckBox.Value = False
+    SampleCommentsBox.Value = ""
+    ReplicateComboBox.Value = "1"
+    FailureComboBox.Value = "None"
+    SampleTypeComboBox.Value = "Grab"
+
+    'Field Measurements Frame
+    WaterTemp1Box.Value = ""
+    WaterTemp2Box.Value = ""
+    WaterTemp3Box.Value = ""
+    SC1Box.Value = ""
+    SC2Box.Value = ""
+    SC3Box.Value = ""
+    DO1Box.Value = ""
+    DO2Box.Value = ""
+    DO3Box.Value = ""
+    pH1Box.Value = ""
+    pH2Box.Value = ""
+    pH3Box.Value = ""
+    Turbidity1Box.Value = ""
+    Turbidity2Box.Value = ""
+    Turbidity3Box.Value = ""
+    
+'Habitat Observations Frame
+    AnimalPresenceComboBox.Value = ""
+    WaterColorComboBox.Value = ""
+    DominantSubstrate1ComboBox.Value = ""
+    DominantSubstrate2ComboBox.Value = ""
+    EvidenceOfFireComboBox.Value = ""
+    ObservedFlowComboBox.Value = ""
+    ObsvChannelFlowComboBox.Value = ""
+    WaterOdorComboBox.Value = ""
+    SiteOdorComboBox.Value = ""
+    'OtherPresenceComboBox.Value = ""
+    OP_None.Value = False
+    OP_Vascular.Value = False
+    OP_Nonvascular.Value = False
+    OP_Trash.Value = False
+    OP_OilySheen.Value = False
+    OP_Foam.Value = False
+    PrecipitationComboBox.Value = ""
+    PrecipitationRunoffComboBox.Value = ""
+    SkyCodeComboBox.Value = ""
+    WadeabilityComboBox.Value = ""
+    WaterClarityComboBox.Value = ""
+    WindDirectionComboBox.Value = ""
+    BeaufortScaleComboBox.Value = ""
+    
+Application.CutCopyMode = False
+StationCodeBox.SetFocus
+
+End Sub
+
+
+
+Private Sub UserForm_Initialize()
+
+'This section sets the default values when you first open the form
+
+    'Sample Collection Frame
+    StationCodeBox.Value = ""
+    AgencyCodeComboBox = ""
+    SampleDateBox.Value = ""
+    FundingCodeComboBox = ""
+    EventCodeComboBox = "WQ"
+    LabSampleIDBox = ""
+    SampleTimeBox.Value = ""
+    ProjectCodeComboBox.Clear
+    ProtocolCodeComboBox = ""
+    UserInitialsBox = ""
+
+    'Sample Site Description Frame
+    OccupationMethodComboBox.Value = "Walk In"
+    LocationComboBox.Value = "Bank"
+    CollectionDeviceComboBox.Value = ""
+    StartingBankComboBox.Value = ""
+    HydroModComboBox.Value = "None"
+    HydroModLocationComboBox.Value = ""
+    GeometryShapeComboBox.Value = "Point"
+
+    'Sample Purpose Frame
+    HabitatCheckBox.Value = False
+    WaterChemCheckBox.Value = False
+    FieldMeasureCheckBox.Value = False
+    WaterToxCheckBox.Value = False
+    
+    'GPS Frame
+    GPSComboBox.Value = "Garmin GPS 76 Cx"
+    DatumComboBox.Value = "NAD 83"
+    LongitudeBox.Value = ""
+    LatitudeBox.Value = ""
+    ElevationBox.Value = ""
+    GPSAccuracyBox.Value = ""
+
+    'Personnel Frame
+    Personnel1ComboBox.Value = ""
+    Personnel2ComboBox.Value = ""
+    
+    'Habitat Observations Frame
+    AnimalPresenceComboBox.Value = ""
+    WaterColorComboBox.Value = ""
+    DominantSubstrate1ComboBox.Value = ""
+    DominantSubstrate2ComboBox.Value = ""
+    EvidenceOfFireComboBox.Value = ""
+    ObservedFlowComboBox.Value = ""
+    ObsvChannelFlowComboBox.Value = ""
+    WaterOdorComboBox.Value = ""
+    SiteOdorComboBox.Value = ""
+    PrecipitationComboBox.Value = ""
+    PrecipitationRunoffComboBox.Value = ""
+    SkyCodeComboBox.Value = ""
+    WadeabilityComboBox.Value = ""
+    WaterClarityComboBox.Value = ""
+    WindDirectionComboBox.Value = ""
+    BeaufortScaleComboBox.Value = ""
+   
+    
+    'Field Measurements Frame
+    WaterTemp1Box.Value = ""
+    WaterTemp2Box.Value = ""
+    WaterTemp3Box.Value = ""
+    SC1Box.Value = ""
+    SC2Box.Value = ""
+    SC3Box.Value = ""
+    DO1Box.Value = ""
+    DO2Box.Value = ""
+    DO3Box.Value = ""
+    pH1Box.Value = ""
+    pH2Box.Value = ""
+    pH3Box.Value = ""
+    Turbidity1Box.Value = ""
+    Turbidity2Box.Value = ""
+    Turbidity3Box.Value = ""
+    
+    'Samples Frame
+    FieldDupCheckBox.Value = False
+    FieldBlankCheckBox.Value = False
+'    LabDupCheckBox.Value = False
+    SampleCommentsBox.Value = ""
+    ReplicateComboBox.Value = "1"
+    FailureComboBox.Value = "None"
+    SampleTypeComboBox.Value = "Grab"
+   
+   'Calibration Data Frame
+   CalDevice1ComboBox.Value = ""
+   CalDevice2ComboBox.Value = ""
+   CalDevice3ComboBox.Value = ""
+   Device1TempCheckBox.Value = False
+   Device1SCCheckBox.Value = False
+   Device1DOCheckBox.Value = False
+   Device1pHCheckBox.Value = False
+   Device1TurbCheckBox.Value = False
+   Device2TempCheckBox.Value = False
+   Device2SCCheckBox.Value = False
+   Device2DOCheckBox.Value = False
+   Device2pHCheckBox.Value = False
+   Device2TurbCheckBox.Value = False
+   Device3TempCheckBox.Value = False
+   Device3SCCheckBox.Value = False
+   Device3DOCheckBox.Value = False
+   Device3pHCheckBox.Value = False
+   Device3TurbCheckBox.Value = False
+   CalDate1Box.Value = ""
+   CalDate2Box.Value = ""
+   CalDate3Box.Value = ""
+   
+   
+   
+
+    'Change the options listed for Project Code here. Simple delete lines
+    'or add new options by inserting a new ".AddItem" line
+    
+'The following With Functions are for all combo boxes on the form
+
+    ''''''''''''''''''''Sample Collection Frame ComboBoxes''''''''''''''''''''''''
+
+    With ProjectCodeComboBox
+        .AddItem "RWB5_DWRT_FY1718"
+        .AddItem "RWB5_StS_2017"
+        .AddItem "CVSALTS_MUN_2017"
+        .AddItem "RWB5_CVT_FY1718"
+        .AddItem "303d Delisting Assessment"
+        .AddItem "RWB5_StS_FY1516"
+        .AddItem "RWB5_DWRT_FY1516"
+        .AddItem "RWB5_DWRT_FY1617"
+        .AddItem "Not Applicable"
+    End With
+    
+    With EventCodeComboBox
+        'water quality sampling
+        .AddItem "WQ"
+        'bioassessment sampling
+        .AddItem "BA"
+        'tissue sampling
+        .AddItem "TI"
+    End With
+    
+    'Change the options listed for Protocol Code here. Simple delete lines
+    'or add new options by inserting a new ".AddItem" line
+    With ProtocolCodeComboBox
+        .AddItem "AGPRO_R5S_2010"
+        .AddItem "SWAMP_2007_WS"
+        .AddItem "SWAMP_Historical"
+        .AddItem "SWAMP_PyrRD"
+        .AddItem "SWAMP_SPoT"
+        .AddItem "SWCMP_AppA&B_0209"
+        .AddItem "Not Applicable"
+        .AddItem "Not Recorded"
+    End With
+    
+    With AgencyCodeComboBox
+        .AddItem "BCWC"
+        .AddItem "DWR-ND"
+        .AddItem "ExcelChem"
+        .AddItem "MTA"
+        .AddItem "RWQCB5F"
+        .AddItem "RWQCB5U"
+        .AddItem "RWQCB5S"
+        .AddItem "TuolomneRCD"
+        .AddItem "TuolomneRT"
+        .AddItem "WSRCD"
+        .AddItem "Not Recorded"
+    End With
+    
+    With FundingCodeComboBox
+        .AddItem "17SW5S01"
+        .AddItem "16SW5S01"
+        .AddItem "15SW5S01"
+        .AddItem "14SW5S01"
+        .AddItem "13SW5S01"
+        .AddItem "NR"
+    End With
+    '''''''''''''''End of Sample Collection Frame ComboBoxes'''''''''''''''
+
+    '''''''''''''''Start of Personnel Frame ComboBoxes'''''''''''''''''''''
+    With Personnel1ComboBox
+        .AddItem "Alexander, I."
+        .AddItem "Anderson, Be."
+        .AddItem "Au Yeung, C."
+        .AddItem "Berry, M."
+        .AddItem "Bettencourt, B."
+        .AddItem "Coombe, P."
+        .AddItem "Costache, D."
+        .AddItem "Fitzgibbon, P."
+        .AddItem "Gilligan, K."
+        .AddItem "Grant, D."
+        .AddItem "Groom, A."
+        .AddItem "Jarrett, P."
+        .AddItem "Khang, T."
+        .AddItem "Krause, M."
+        .AddItem "Lance, J."
+        .AddItem "Little, D."
+        .AddItem "Littlejohn, A."
+        .AddItem "MacKinnon, E."
+        .AddItem "McReynolds, S."
+        .AddItem "Mello, S."
+        .AddItem "Schmitz, J."
+        .AddItem "Sekigahama, M."
+        .AddItem "Tomlinson, V."
+        .AddItem "VanCamp, G."
+        .AddItem "Wenzel, A."
+    End With
+    
+    With Personnel2ComboBox
+        .AddItem "Alexander, I."
+        .AddItem "Anderson, Be."
+        .AddItem "Au Yeung, C."
+        .AddItem "Berry, M."
+        .AddItem "Bettencourt, B."
+        .AddItem "Coombe, P."
+        .AddItem "Costache, D."
+        .AddItem "Fitzgibbon, P."
+        .AddItem "Gilligan, K."
+        .AddItem "Grant, D."
+        .AddItem "Groom, A."
+        .AddItem "Jarrett, P."
+        .AddItem "Khang, T."
+        .AddItem "Krause, M."
+        .AddItem "Lance, J."
+        .AddItem "Little, D."
+        .AddItem "Littlejohn, A."
+        .AddItem "MacKinnon, E."
+        .AddItem "McReynolds, S."
+        .AddItem "Mello, S."
+        .AddItem "Schmitz, J."
+        .AddItem "Sekigahama, M."
+        .AddItem "Tomlinson, V."
+        .AddItem "VanCamp, G."
+        .AddItem "Wenzel, A."
+    End With
+    
+    With GPSComboBox
+        .AddItem "Garmin GPS 76 Cx"
+    End With
+    
+    With DatumComboBox
+        .AddItem "NAD 83"
+    End With
+    
+    
+    ''''''''''''''''''''''End of Personnel Frame ComboBoxes''''''''''''''''''''
+    
+    ''''''''''''''Start of Sample Site Description Frame ComboBoxes''''''''''''
+    With LocationComboBox
+        .AddItem "Bank"
+        .AddItem "Midchannel"
+        .AddItem "Not Applicable"
+    End With
+    
+    With CollectionDeviceComboBox
+        .AddItem "RWQCB5S Sampling pole w/adjustable head"
+        .AddItem "Individual Collection by hand"
+    End With
+    
+    With GeometryShapeComboBox
+        .AddItem "Point"
+        .AddItem "Line"
+        .AddItem "Line Centroid"
+        .AddItem "Polygon"
+        .AddItem "Polygon Centroid"
+    End With
+    
+    With OccupationMethodComboBox
+        .AddItem "Walk In"
+        .AddItem "Bridge"
+        .AddItem "Other"
+    End With
+    
+    With StartingBankComboBox
+        .AddItem "RB"
+        .AddItem "LB"
+    End With
+    
+    With HydroModComboBox
+        .AddItem "None"
+        .AddItem "Bridge"
+        .AddItem "Pipes"
+        .AddItem "Dam"
+        .AddItem "ConcreteChannel"
+        .AddItem "GradeControl"
+        .AddItem "PumpStation"
+        .AddItem "Culvert"
+        .AddItem "AerialZipline"
+        .AddItem "Other"
+    End With
+    
+    With HydroModLocationComboBox
+        .AddItem "US"
+        .AddItem "DS"
+        .AddItem "WI"
+        .AddItem "NA"
+        .AddItem "NR"
+    End With
+    '''''''''''End of Sample Site Description Frame ComboBoxes''''''''''''
+    
+    '''''''''''Start of Habitat Observations Frame ComboBoxes'''''''''''''''''
+    With AnimalPresenceComboBox
+        .AddItem "None"
+        .AddItem "Wildlife"
+        .AddItem "Domestics"
+        .AddItem "Birds"
+        .AddItem "Birds,Domestics"
+        .AddItem "Birds,Domestics,Wildlife"
+        .AddItem "Birds,Wildlife"
+        .AddItem "Domestics,Wildlife"
+        .AddItem "Not Recorded"
+    End With
+    
+    With WaterColorComboBox
+        .AddItem "Colorless"
+        .AddItem "Black"
+        .AddItem "Black/Brown"
+        .AddItem "Black/Gray"
+        .AddItem "Black/Yellow"
+        .AddItem "Brown"
+        .AddItem "Brown/Gray"
+        .AddItem "Brown/Yellow"
+        .AddItem "Gray"
+        .AddItem "Gray/Yellow"
+        .AddItem "Green"
+        .AddItem "Green/Brown"
+        .AddItem "Green/Gray"
+        .AddItem "Red"
+        .AddItem "Yellow"
+        .AddItem "Yellow/Brown"
+        .AddItem "Mixed"
+        .AddItem "Not Recorded"
+        .AddItem "Other"
+    End With
+    
+    With DominantSubstrate1ComboBox
+        .AddItem "Bedrock"
+        .AddItem "Concrete"
+        .AddItem "Boulder"
+        .AddItem "Cobble"
+        .AddItem "Gravel"
+        .AddItem "Sand"
+        .AddItem "Mud"
+        .AddItem "Unkown"
+        .AddItem "Other"
+    End With
+    
+    With DominantSubstrate2ComboBox
+        .AddItem "Bedrock"
+        .AddItem "Concrete"
+        .AddItem "Boulder"
+        .AddItem "Cobble"
+        .AddItem "Gravel"
+        .AddItem "Sand"
+        .AddItem "Mud"
+        .AddItem "Unkown"
+    End With
+    
+    With EvidenceOfFireComboBox
+        .AddItem "No"
+        .AddItem "< 1 year"
+        .AddItem "< 5 years"
+        .AddItem "Not Recorded"
+    End With
+    
+    With ObservedFlowComboBox
+        .AddItem "Water Flowing"
+        .AddItem "Trickle (<0.1 cfs)"
+        .AddItem "Isolated Pool"
+        .AddItem "Dry Waterbody Bed"
+        .AddItem "No Observed Flow"
+        .AddItem "Not Recorded"
+        .AddItem "NA"
+    End With
+    
+    With ObsvChannelFlowComboBox
+        .AddItem "Low"
+        .AddItem "Normal"
+        .AddItem "High"
+        .AddItem "Flood"
+    End With
+    
+    With WaterOdorComboBox
+        .AddItem "None"
+        .AddItem "Sulfides"
+        .AddItem "Sewage"
+        .AddItem "Petroleum"
+        .AddItem "Manure"
+        .AddItem "Mixed"
+        .AddItem "Smoke"
+        .AddItem "Other"
+        .AddItem "Not Recorded"
+    End With
+    
+    With SiteOdorComboBox
+        .AddItem "None"
+        .AddItem "Sulfides"
+        .AddItem "Sewage"
+        .AddItem "Petroleum"
+        .AddItem "Manure"
+        .AddItem "Smoke"
+        .AddItem "Mixed"
+        .AddItem "Other"
+        .AddItem "Not Recorded"
+    End With
+    
+    
+    With PrecipitationComboBox
+        .AddItem "None"
+        .AddItem "Fog"
+        .AddItem "Drizzle"
+        .AddItem "Rain"
+        .AddItem "Snow"
+        .AddItem "Not Recorded"
+    End With
+    
+    With PrecipitationRunoffComboBox
+        .AddItem "None"
+        .AddItem "Light Precip"
+        .AddItem "Mod to Heavy Precip"
+        .AddItem "Unknown"
+    End With
+    
+    With PicturesComboBox
+        .AddItem "1 pict"
+        .AddItem "2 picts"
+        .AddItem "3 picts"
+        .AddItem "4 picts"
+        .AddItem "No Pictures"
+        .AddItem "Not Recorded"
+    End With
+    
+    With SkyCodeComboBox
+        .AddItem "Clear"
+        .AddItem "Partly Cloudy"
+        .AddItem "Overcast"
+        .AddItem "Fog"
+        .AddItem "Smoky"
+        .AddItem "Hazy"
+        .AddItem "Not Recorded"
+    End With
+    
+    With WadeabilityComboBox
+        .AddItem "Wadeable"
+        .AddItem "Non-Wadeable"
+        .AddItem "Unknown"
+    End With
+    
+    With WaterClarityComboBox
+        .AddItem "Clear"
+        .AddItem "Cloudy (> 4"" vis.)"
+        .AddItem "Murky (< 4"" vis.)"
+    End With
+    
+    With BeaufortScaleComboBox
+        .AddItem "0"
+        .AddItem "1"
+        .AddItem "2"
+        .AddItem "3"
+        .AddItem "4"
+        .AddItem "5"
+        .AddItem "6"
+        .AddItem "7"
+        .AddItem "8"
+        .AddItem "Not Recorded"
+    End With
+    
+    With WindDirectionComboBox
+        .AddItem "XX"
+        .AddItem "N"
+        .AddItem "NE"
+        .AddItem "E"
+        .AddItem "SE"
+        .AddItem "S"
+        .AddItem "SW"
+        .AddItem "W"
+        .AddItem "NW"
+        .AddItem "Not Recorded"
+    End With
+    '''''''''''''''End of Habitat Observations Frame ComboBoxes'''''''''''''''
+    
+    '''''''''''''Start of Samples Frame ComboBoxes''''''''''''''''''''''
+    With SampleTypeComboBox
+        .AddItem "Grab"
+        .AddItem "Integrated"
+    End With
+    
+    With ReplicateComboBox
+        .AddItem "1"
+        .AddItem "2"
+    End With
+    
+    With FailureComboBox
+        .AddItem "Dry (no water)"
+        .AddItem "Flooded"
+        .AddItem "Instrument failure"
+        .AddItem "Isolated Pool"
+        .AddItem "No Access"
+        .AddItem "None"
+        .AddItem "Not Recorded"
+        .AddItem "Results Not Stored"
+        .AddItem "Stagnant"
+        .AddItem "Other (describe in SampleComm)"
+    End With
+    '''''''''''''''''End of Samples Frame ComboBoxes'''''''''''''''''''''''
+    
+    ''''''''''''''''Start of Calibration Data Frame ComboBoxes'''''''''''''''''
+    With CalDevice1ComboBox
+        .AddItem "DWR-ND YSI 85"
+        .AddItem "DWR-ND Hach SensION1"
+        .AddItem "DWR-ND Hach 2100P"
+        .AddItem "RWQCB5S YSI Meter EXO1 300"
+        .AddItem "RWQCB5S #1 Hach 2100P"
+        .AddItem "RWQCB5S Stakeholder Meter"
+        .AddItem "RWQCB5S Blue Myron #1"
+        .AddItem "Other"
+        .AddItem "Not Recorded"
+        .AddItem "None"
+    End With
+    
+    With CalDevice2ComboBox
+        .AddItem "DWR-ND YSI 85"
+        .AddItem "DWR-ND Hach SensION1"
+        .AddItem "DWR-ND Hach 2100P"
+        .AddItem "RWQCB5S YSI Meter EXO1 300"
+        .AddItem "RWQCB5S #1 Hach 2100P"
+        .AddItem "RWQCB5S Stakeholder Meter"
+        .AddItem "RWQCB5S Blue Myron #1"
+        .AddItem "Other"
+        .AddItem "Not Recorded"
+        .AddItem "None"
+    End With
+    
+    With CalDevice3ComboBox
+        .AddItem "DWR-ND YSI 85"
+        .AddItem "DWR-ND Hach SensION1"
+        .AddItem "DWR-ND Hach 2100P"
+        .AddItem "RWQCB5S YSI Meter EXO1 300"
+        .AddItem "RWQCB5S #1 Hach 2100P"
+        .AddItem "RWQCB5S Stakeholder Meter"
+        .AddItem "RWQCB5S Blue Myron #1"
+        .AddItem "Other"
+        .AddItem "Not Recorded"
+        .AddItem "None"
+    End With
+    ''''''''''''''End of Calibration Data Frame ComboBoxes''''''''''''''''''''''''
+    
+
+'Sets the cursor in the Station Code box to begin data entry
+
+StationCodeBox.SetFocus
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub

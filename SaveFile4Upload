@@ -1,0 +1,102 @@
+Sub SaveFile4Upload_Activate()
+
+Dim HtU As Worksheet
+Dim Rslt As Worksheet
+Dim LbB As Worksheet
+Dim MPN As Worksheet
+Dim CL As Worksheet
+Dim FD As Worksheet    'Field Duplicates Worksheet
+Dim LD As Worksheet   'Lab Duplicates Worksheet
+Dim LB As Worksheet     'Lab Blank Worksheet
+Dim FB As Worksheet     'Field Blank Worksheet
+Dim Calc As Worksheet   'Calculations Worksheet
+Dim sh As Worksheet
+Dim Tracking As Workbook
+Dim Bacteria As Workbook
+Dim temp As Workbook
+Dim wbPath As String
+Dim filenm As String
+Dim obj As OLEObject
+Dim lrRslt As Long
+
+Dim myFolder As String
+
+Set Bacteria = Workbooks("R5 Sac Bacteria Data Entry Template.xlsm")
+Set Rslt = Sheets("Results")
+Set LbB = Sheets("LabBatch")
+Set Calc = Sheets("Calculations")
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+Bacteria.Save
+DoEvents
+
+Application.ScreenUpdating = False
+Application.DisplayAlerts = False
+Bacteria.SaveAs ThisWorkbook.Path & "\temp.xlsm"
+
+Set temp = Workbooks("temp.xlsm")
+Set HtU = Sheets("How to Use")
+Set Rslt = Sheets("Results")
+Set LbB = Sheets("LabBatch")
+Set Calc = Sheets("Calculations")
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+
+
+    With temp
+        HtU.Delete
+        Calc.Delete
+        LD.Delete
+        FD.Delete
+        LB.Delete
+        FB.Delete
+        MPN.Delete
+        CL.Delete
+    End With
+
+'Selects all ActiveX controls on Bacteria sheet and deletes them
+For Each obj In Worksheets("Results").OLEObjects
+    obj.Delete
+Next obj
+
+'Prompts you to saves your data entry template with the filename that was stored in the LabBatch worksheet. Takes you as far
+'as the "Lab-Chemisty_Results" Folder and user has to navigate the rest of the way to the right folder to save in
+lrLbB = Sheets("LabBatch").Range("A" & Rows.Count).End(xlUp).Row
+filenm = LbB.Cells(lrLbB, "A").Value
+With Application.FileDialog(msoFileDialogSaveAs)
+    .FilterIndex = 4
+    .InitialFileName = "R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Lab-Chemisty_Results\" & filenm
+    If .Show = -1 Then .Execute
+End With
+
+'Deletes the row in the LabBatch worksheet that was holding the filename
+LbB.Rows(lrLbB).Delete
+
+ThisWorkbook.Save
+
+Application.DisplayAlerts = True
+Application.ScreenUpdating = True
+
+If MsgBox("Congrats, you're done! Would you like to enter more bacteria data?", vbYesNo, "Incoming message...") = vbYes Then
+        Workbooks.Open ("R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Lab-Chemisty_Results\Bacti Data Entry.xlsm")
+        Workbooks(filenm & ".xls").Close
+            Else
+                If MsgBox("Ok, buh bye now.", vbOKOnly) = vbOK Then
+                    ActiveWorkbook.Close savechanges:=True
+                End If
+
+End If
+                
+End Sub
+
+

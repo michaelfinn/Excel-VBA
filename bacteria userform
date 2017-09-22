@@ -1,0 +1,1103 @@
+Option Explicit
+Option Compare Text
+
+
+
+
+Sub CalcMPNButton_Click()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''' This sub copies all the required values into the          '''''
+''''' Calculations worksheet, the MPNs are calculated and       '''''
+''''' copied back into the userform with their applicable       '''''
+''''' sample numbers.                                           '''''
+''''' Written by: Michael Sekigahama                  07/12/17  '''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Dim lrRslt As Long     'Last Row Bacteria Worksheet
+Dim lrLB As Long        'Last Row LabBatch Worksheet
+Dim lrMPN As Long       'Last Row MPN_Table Worksheet
+Dim lrCL As Long        'Last Row Confidence_Limits Worksheet
+Dim lrCalc As Long      'Last Row Calculations Worksheet
+Dim i As Integer        'Variable used for looping
+Dim p As Integer        'Variable used for looping
+
+Dim Rslt As Worksheet      'Bacteria Worksheet
+Dim LB As Worksheet         'LabBatch Worksheet
+Dim MPN As Worksheet        'MPN_Table Worksheet
+Dim CL As Worksheet         'Confidence_Limits Worksheet
+Dim Calc As Worksheet       'Calculations Worksheet
+
+Set Rslt = Sheets("Results")
+Set LB = Sheets("LabBatch")
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+Set Calc = Sheets("Calculations")
+
+'This With statement clears the previous entries before inserting the new data.
+'Originally I tried just deleting the rows but eventually you'd end up deleting
+'so many rows you wouldn't have the formulas you need in the MPN columns.
+'This was easier than figuring out a way to preserve the formulas while still
+'deleting whole rows.
+With Calc
+
+    If .Cells(.Rows.Count, "A").End(xlUp).Row > 2 Then
+        Calc.Range("A3:U100").Clear
+        Calc.Range("X3:AC100").Clear
+        
+    End If
+
+End With
+
+'This part begins inputting lab data into the calculations worksheet to compute the MPNs
+'Then copies those values to the data entry userform
+For i = 1 To 28
+
+    'Finds the last row
+    lrCalc = Sheets("Calculations").Range("A" & Rows.Count).End(xlUp).Row
+    
+    'This prevents the form from pasting values from empty columns
+    If Controls("CN" & i).Value <> "" Then
+    
+        'This If statement pastes values for blanks and non dup samples
+        If Controls("DT" & i).Value = "" Or Controls("DT" & i).Value = "FB" Or Controls("DT" & i).Value = "LB" Then
+ 
+            Calc.Cells(lrCalc + 1, "A").Value = SampleID.Value
+            Calc.Cells(lrCalc + 1, "B").Value = SampleDate.Value
+            Calc.Cells(lrCalc + 1, "C").Value = SampleYear.Value
+            Calc.Cells(lrCalc + 1, "D").Value = SamplerName.Value
+            Calc.Cells(lrCalc + 1, "E").Value = ProcessorName.Value
+            Calc.Cells(lrCalc + 1, "F").Value = ReaderName.Value
+            Calc.Cells(lrCalc + 1, "G").Value = ArrivalTime.Value
+            Calc.Cells(lrCalc + 1, "H").Value = IntoIncubator.Value
+            Calc.Cells(lrCalc + 1, "I").Value = OutIncubator.Value
+            Calc.Cells(lrCalc + 1, "K").Value = Controls("DT" & i).Value
+            Calc.Cells(lrCalc + 1, "L").Value = "Lab"
+            Calc.Cells(lrCalc + 1, "M").Value = Controls("SID" & i).Value
+            Calc.Cells(lrCalc + 1, "N").Value = Controls("CN" & i).Value
+            Calc.Cells(lrCalc + 1, "P").Value = Controls("LWY" & i).Value
+            Calc.Cells(lrCalc + 1, "Q").Value = Controls("SWY" & i).Value
+            Calc.Cells(lrCalc + 1, "R").Value = Controls("EWY" & i).Value
+            Calc.Cells(lrCalc + 1, "X").Value = Controls("LWYF" & i).Value
+            Calc.Cells(lrCalc + 1, "Y").Value = Controls("SWYF" & i).Value
+            Calc.Cells(lrCalc + 1, "Z").Value = Controls("FPYF" & i).Value
+            Controls("MPNY" & i).Value = Calc.Cells(lrCalc + 1, "V").Value
+            Controls("MPNYF" & i).Value = Calc.Cells(lrCalc + 1, "AD").Value
+    
+        Else
+            'This loops through all the columns to find any matches with originals in case the sample is a dup
+            For p = 1 To 28
+            If Controls("DON" & i).Value = Controls("CN" & p).Value Then
+                Calc.Cells(lrCalc + 1, "A").Value = SampleID.Value
+                Calc.Cells(lrCalc + 1, "B").Value = SampleDate.Value
+                Calc.Cells(lrCalc + 1, "C").Value = SampleYear.Value
+                Calc.Cells(lrCalc + 1, "D").Value = SamplerName.Value
+                Calc.Cells(lrCalc + 1, "E").Value = ProcessorName.Value
+                Calc.Cells(lrCalc + 1, "F").Value = ReaderName.Value
+                Calc.Cells(lrCalc + 1, "G").Value = ArrivalTime.Value
+                Calc.Cells(lrCalc + 1, "H").Value = IntoIncubator.Value
+                Calc.Cells(lrCalc + 1, "I").Value = OutIncubator.Value
+                Calc.Cells(lrCalc + 1, "K").Value = Controls("DT" & i).Value
+                Calc.Cells(lrCalc + 1, "L").Value = "Lab"
+                Calc.Cells(lrCalc + 1, "M").Value = SID1.Value
+                Calc.Cells(lrCalc + 1, "N").Value = Controls("CN" & i).Value
+                Calc.Cells(lrCalc + 1, "O").Value = Controls("DON" & i).Value
+                Calc.Cells(lrCalc + 1, "P").Value = Controls("LWY" & p).Value
+                Calc.Cells(lrCalc + 1, "Q").Value = Controls("SWY" & p).Value
+                Calc.Cells(lrCalc + 1, "R").Value = Controls("EWY" & p).Value
+                Calc.Cells(lrCalc + 1, "S").Value = Controls("LWY" & i).Value
+                Calc.Cells(lrCalc + 1, "T").Value = Controls("SWY" & i).Value
+                Calc.Cells(lrCalc + 1, "U").Value = Controls("EWY" & i).Value
+                Calc.Cells(lrCalc + 1, "X").Value = Controls("LWYF" & p).Value
+                Calc.Cells(lrCalc + 1, "Y").Value = Controls("SWYF" & p).Value
+                Calc.Cells(lrCalc + 1, "Z").Value = Controls("FPYF" & p).Value
+                Calc.Cells(lrCalc + 1, "AA").Value = Controls("LWYF" & i).Value
+                Calc.Cells(lrCalc + 1, "AB").Value = Controls("SWYF" & i).Value
+                Calc.Cells(lrCalc + 1, "AC").Value = Controls("FPYF" & i).Value
+                Controls("MPNY" & i).Value = Calc.Cells(lrCalc + 1, "W").Value
+                Controls("MPNYF" & i).Value = Calc.Cells(lrCalc + 1, "AE").Value
+            End If
+            Next p
+        End If
+    End If
+     
+Next i
+
+
+
+End Sub
+
+Private Sub ColumnNumberLabel_Click()
+
+End Sub
+
+Private Sub Label6_Click()
+
+End Sub
+
+Private Sub UserForm_Initialize()
+
+    With ProtocolCode
+        .AddItem "AGPRO_R5S_2010"
+        .AddItem "SWAMP_2007_WS"
+        .AddItem "SWAMP_Historical"
+        .AddItem "SWAMP_PyrRD"
+        .AddItem "SWAMP_SPoT"
+        .AddItem "SWCMP_AppA&B_0209"
+        .AddItem "Not Applicable"
+        .AddItem "Not Recorded"
+    End With
+    
+    With AgencyCode
+        .AddItem "DWR-ND"
+        .AddItem "RWQCB5F"
+        .AddItem "RWQCB5U"
+        .AddItem "RWQCB5S"
+        .AddItem "Not Recorded"
+    End With
+    
+    With LabAgency
+        .AddItem "DWR-ND"
+        .AddItem "RWQCB5F"
+        .AddItem "RWQCB5U"
+        .AddItem "RWQCB5S"
+        .AddItem "Not Recorded"
+    End With
+    
+    With LabBatchProject
+        .AddItem "StS"
+        .AddItem "CVSALTS"
+        .AddItem "MST"
+    End With
+    
+    With ProjectCode
+        .AddItem "RWB5_DWRT_FY1617"
+        .AddItem "RWB5_DWRT_FY1718"
+        .AddItem "RWB5_StS_FY1516"
+        .AddItem "RWB5_StS_FY1718"
+        .AddItem "RWB5_CVT_FY1617"
+        .AddItem "RWB5_CVT_FY1718"
+        .AddItem "Not Applicable"
+    End With
+
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+
+If CloseMode = 0 Then
+    Cancel = True
+    MsgBox "Please close the form with the 'Close' button on the form. Thanks, you're the best.", vbCritical
+End If
+
+End Sub
+
+Private Sub CloseButton_Click()
+If MsgBox("Are you sure you want to close?", vbYesNo) = vbYes Then Unload Me
+End Sub
+
+Private Sub CommandButton1_Click()
+'' populates the test values
+
+SampleID.Value = "PF160616"
+SampleDate.Value = "06/16/16"
+ProcessDate.Value = "06/16/16"
+ProcessTime.Value = "15:40"
+AnalysisDate.Value = "06/17/16"
+AnalysisTime.Value = "12:38"
+SampleYear.Value = "2017"
+SamplerName.Value = "PF"
+ProcessorName.Value = "AW"
+ReaderName.Value = "PF"
+ProtocolCode.Value = "ProtocolAAA"
+LabAgency.Value = "RWQCB5S"
+AgencyCode.Value = "AgencyAAA"
+LabBatchProject.Value = "StS"
+ProjectCode.Value = "RWB5S_STS_05_FY1617"
+ArrivalTime.Value = "15:40"
+IntoIncubator.Value = "16:29"
+OutIncubator.Value = "12:38"
+ST1.Value = "11:36"
+CN1.Value = "10"
+SID1.Value = "516NEV103"
+DT1.Value = ""
+DON1.Value = ""
+LWY1.Value = "49"
+SWY1.Value = "46"
+EWY1.Value = "0"
+QAY1A.Value = ""
+LWYF1.Value = "44"
+SWYF1.Value = "8"
+FPYF1.Value = "0"
+QAYF1A.Value = ""
+
+ST2.Value = "11:07"
+CN2.Value = "11"
+SID2.Value = "516NEV105"
+DT2.Value = ""
+DON2.Value = ""
+LWY2.Value = "49"
+SWY2.Value = "48"
+EWY2.Value = "0"
+QAY2A.Value = ""
+LWYF2.Value = "38"
+SWYF2.Value = "6"
+FPYF2.Value = "0"
+QAYF2A.Value = ""
+
+ST3.Value = "07:57"
+CN3.Value = "12"
+SID3.Value = "516NEV109"
+DT3.Value = ""
+DON3.Value = ""
+LWY3.Value = "49"
+SWY3.Value = "43"
+EWY3.Value = "0"
+QAY3A.Value = ""
+LWYF3.Value = "26"
+SWYF3.Value = "2"
+FPYF3.Value = "0"
+QAYF3A.Value = ""
+
+ST4.Value = "08:20"
+CN4.Value = "13"
+SID4.Value = "517NEV103"
+DT4.Value = ""
+DON4.Value = ""
+LWY4.Value = "49"
+SWY4.Value = "47"
+EWY4.Value = "0"
+QAY4A.Value = ""
+LWYF4.Value = "48"
+SWYF4.Value = "15"
+FPYF4.Value = "0"
+QAYF4A.Value = ""
+ 
+ST5.Value = "08:39"
+CN5.Value = "14"
+SID5.Value = "517NEV102"
+DT5.Value = ""
+DON5.Value = ""
+LWY5.Value = "49"
+SWY5.Value = "46"
+EWY5.Value = "0"
+QAY5A.Value = ""
+LWYF5.Value = "36"
+SWYF5.Value = "6"
+FPYF5.Value = "0"
+QAYF5A.Value = ""
+
+ST6.Value = "08:58"
+CN6.Value = "15"
+SID6.Value = "517NEV101"
+DT6.Value = ""
+DON6.Value = ""
+LWY6.Value = "49"
+SWY6.Value = "48"
+EWY6.Value = "0"
+QAY6A.Value = ""
+LWYF6.Value = "49"
+SWYF6.Value = "23"
+FPYF6.Value = "0"
+QAYF6A.Value = ""
+
+ST7.Value = "09:05"
+CN7.Value = "16"
+SID7.Value = "516NEV907"
+DT7.Value = ""
+DON7.Value = ""
+LWY7.Value = "49"
+SWY7.Value = "47"
+EWY7.Value = "0"
+QAY7A.Value = ""
+LWYF7.Value = "48"
+SWYF7.Value = "22"
+FPYF7.Value = "0"
+QAYF7A.Value = ""
+
+ST8.Value = "09:10"
+CN8.Value = "17"
+SID8.Value = "516NEV908"
+DT8.Value = ""
+DON8.Value = ""
+LWY8.Value = "49"
+SWY8.Value = "48"
+EWY8.Value = "0"
+QAY8A.Value = ""
+LWYF8.Value = "49"
+SWYF8.Value = "22"
+FPYF8.Value = "0"
+QAYF8A.Value = ""
+
+ST9.Value = "09:36"
+CN9.Value = "18"
+SID9.Value = "516NEV906"
+DT9.Value = ""
+DON9.Value = ""
+LWY9.Value = "49"
+SWY9.Value = "45"
+EWY9.Value = "0"
+QAY9A.Value = ""
+LWYF9.Value = "49"
+SWYF9.Value = "19"
+FPYF9.Value = "0"
+QAYF9A.Value = ""
+
+ST10.Value = "10:01"
+CN10.Value = "19"
+SID10.Value = "517NEV104"
+DT10.Value = ""
+DON10.Value = ""
+LWY10.Value = "49"
+SWY10.Value = "47"
+EWY10.Value = "0"
+QAY10A.Value = ""
+LWYF10.Value = "49"
+SWYF10.Value = "20"
+FPYF10.Value = "0"
+QAYF10A.Value = ""
+
+ST11.Value = "10:34"
+CN11.Value = "20"
+SID11.Value = "517NEV107"
+DT11.Value = ""
+DON11.Value = ""
+LWY11.Value = "49"
+SWY11.Value = "48"
+EWY11.Value = "0"
+QAY11A.Value = ""
+LWYF11.Value = "49"
+SWYF11.Value = "22"
+FPYF11.Value = "0"
+QAYF11A.Value = ""
+
+ST12.Value = "13:17"
+CN12.Value = "21"
+SID12.Value = "519AMNDVY"
+DT12.Value = ""
+DON12.Value = ""
+LWY12.Value = "49"
+SWY12.Value = "48"
+EWY12.Value = "0"
+QAY12A.Value = ""
+LWYF12.Value = "49"
+SWYF12.Value = "39"
+FPYF12.Value = "0"
+QAYF12A.Value = ""
+
+ST13.Value = "13:28"
+CN13.Value = "22"
+SID13.Value = "519AMNSAC"
+DT13.Value = ""
+DON13.Value = ""
+LWY13.Value = "49"
+SWY13.Value = "47"
+EWY13.Value = "0"
+QAY13A.Value = ""
+LWYF13.Value = "28"
+SWYF13.Value = "3"
+FPYF13.Value = "0"
+QAYF13A.Value = ""
+
+ST14.Value = "13:48"
+CN14.Value = "23"
+SID14.Value = "514SAC009"
+DT14.Value = ""
+DON14.Value = ""
+LWY14.Value = "49"
+SWY14.Value = "48"
+EWY14.Value = "0"
+QAY14A.Value = ""
+LWYF14.Value = "39"
+SWYF14.Value = "6"
+FPYF14.Value = "0"
+QAYF14A.Value = ""
+
+ST15.Value = "14:08"
+CN15.Value = "24"
+SID15.Value = "519SAC106"
+DT15.Value = ""
+DON15.Value = ""
+LWY15.Value = "49"
+SWY15.Value = "46"
+EWY15.Value = "0"
+QAY15A.Value = ""
+LWYF15.Value = "27"
+SWYF15.Value = "5"
+FPYF15.Value = "0"
+QAYF15A.Value = ""
+
+ST16.Value = "14:37"
+CN16.Value = "25"
+SID16.Value = "519SAC104"
+DT16.Value = ""
+DON16.Value = ""
+LWY16.Value = "49"
+SWY16.Value = "44"
+EWY16.Value = "0"
+QAY16A.Value = ""
+LWYF16.Value = "12"
+SWYF16.Value = "0"
+FPYF16.Value = "0"
+QAYF16A.Value = ""
+
+ST17.Value = "15:01"
+CN17.Value = "26"
+SID17.Value = "519LSAC53"
+DT17.Value = ""
+DON17.Value = ""
+LWY17.Value = "49"
+SWY17.Value = "47"
+EWY17.Value = "0"
+QAY17A.Value = ""
+LWYF17.Value = "9"
+SWYF17.Value = "5"
+FPYF17.Value = "0"
+QAYF17A.Value = ""
+
+ST18.Value = "11:36"
+CN18.Value = "80"
+SID18.Value = "516NEV103"
+DT18.Value = "FD"
+DON18.Value = "10"
+LWY18.Value = "49"
+SWY18.Value = "46"
+EWY18.Value = "0"
+QAY18A.Value = ""
+LWYF18.Value = "39"
+SWYF18.Value = "11"
+FPYF18.Value = "0"
+QAYF18A.Value = ""
+
+ST19.Value = "11:07"
+CN19.Value = "81"
+SID19.Value = "516NEV105"
+DT19.Value = "FB"
+DON19.Value = ""
+LWY19.Value = "0"
+SWY19.Value = "0"
+EWY19.Value = "0"
+QAY19A.Value = ""
+LWYF19.Value = "0"
+SWYF19.Value = "0"
+FPYF19.Value = "0"
+QAYF19A.Value = ""
+
+ST20.Value = "11:07"
+CN20.Value = "82"
+SID20.Value = "516NEV105"
+DT20.Value = "LD"
+DON20.Value = "11"
+LWY20.Value = "49"
+SWY20.Value = "45"
+EWY20.Value = "0"
+QAY20A.Value = ""
+LWYF20.Value = "37"
+SWYF20.Value = "2"
+FPYF20.Value = "0"
+QAYF20A.Value = ""
+
+ST21.Value = "10:34"
+CN21.Value = "83"
+SID21.Value = "517NEV107"
+DT21.Value = "LD"
+DON21.Value = "20"
+LWY21.Value = "49"
+SWY21.Value = "48"
+EWY21.Value = "0"
+QAY21A.Value = ""
+LWYF21.Value = "49"
+SWYF21.Value = "23"
+FPYF21.Value = "0"
+QAYF21A.Value = ""
+
+ST22.Value = "00:00"
+CN22.Value = "84"
+SID22.Value = "Type II H2O"
+DT22.Value = "LB"
+DON22.Value = ""
+LWY22.Value = "0"
+SWY22.Value = "0"
+EWY22.Value = "0"
+QAY22A.Value = ""
+LWYF22.Value = "0"
+SWYF22.Value = "0"
+FPYF22.Value = "0"
+QAYF22A.Value = ""
+
+
+End Sub
+
+Private Sub RetrieveQA_Click()
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''' This sub copies all the QA sample data into their respective worksheets '''''
+''''' so the QA Data can then be calculated. Then the calculated values get   '''''
+''''' copied into the QAResults Userform that pops up. The user than copies   '''''
+''''' the relevant information onto their hard copy lab worksheet to be       '''''
+''''' scanned later as a backup hardcopy data archive.                        '''''
+''''' Written by: Michael Sekigahama                            07/12/17      '''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+Dim lrRslt As Long     'Last Row Bacteria Worksheet
+Dim lrLB As Long        'Last Row LabBlank Worksheet
+Dim lrCL As Long        'Last Row Confidence_Limits Worksheet
+Dim lrCalc As Long      'Last Row Calculations Worksheet
+Dim lrLD As Long        'Last Row Lab Duplicate Worksheet
+Dim lrFD As Long        'Last Row Field Duplicate Worksheet
+Dim lrFB As Long        'Last Row Field Blank Worksheet
+Dim i As Integer        'Used in loop
+Dim y As Integer        'Used in loop
+
+Dim Rslt As Worksheet    'Bacteria Worksheet
+Dim LB As Worksheet   'LabBatch Worksheet
+Dim MPN As Worksheet     'MPN_Table Worksheet
+Dim CL As Worksheet     'Confidence_Limits Worksheet
+Dim Calc As Worksheet   'Calculations Worksheet
+Dim LD As Worksheet     'Lab Duplicates Worksheet
+Dim FD As Worksheet     'Field Duplicates Worksheet
+Dim FB As Worksheet     'Field Blank Worksheet
+
+Set Rslt = Sheets("Results")
+Set LB = Sheets("LabBatch")
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+Set Calc = Sheets("Calculations")
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+Application.DisplayStatusBar = True
+
+
+
+'Loops through all textboxes on the userform if the Dup Type field is populated
+For i = 1 To 28
+
+'Populates Lab Duplicates Worksheet
+lrLD = Sheets("Lab Duplicates").Range("A" & Rows.Count).End(xlUp).Row
+
+  If Controls("DT" & i).Value <> "" Then
+        If Controls("DT" & i).Value = "LD" Then
+            LD.Cells(lrLD + 1, "A").Value = SampleID.Value
+            LD.Cells(lrLD + 1, "B").Value = SampleDate.Value
+            LD.Cells(lrLD + 1, "C").Value = SampleYear.Value
+            LD.Cells(lrLD + 1, "D").Value = SamplerName.Value
+            LD.Cells(lrLD + 1, "E").Value = ProcessorName.Value
+            LD.Cells(lrLD + 1, "F").Value = ReaderName.Value
+            LD.Cells(lrLD + 1, "G").Value = ArrivalTime.Value
+            LD.Cells(lrLD + 1, "H").Value = IntoIncubator.Value
+            LD.Cells(lrLD + 1, "I").Value = OutIncubator.Value
+            LD.Cells(lrLD + 1, "L").Value = "Lab"
+            LD.Cells(lrLD + 1, "M").Value = Controls("SID" & i).Value
+            LD.Cells(lrLD + 1, "N").Value = Controls("DON" & i).Value
+            LD.Cells(lrLD + 1, "O").Value = Controls("CN" & i).Value
+                For y = 1 To 28
+                    If Controls("DON" & i).Value = Controls("CN" & y).Value Then
+                        LD.Cells(lrLD + 1, "P").Value = Controls("LWY" & y).Value
+                        LD.Cells(lrLD + 1, "Q").Value = Controls("SWY" & y).Value
+                        LD.Cells(lrLD + 1, "R").Value = Controls("EWY" & y).Value
+                    End If
+                Next y
+            LD.Cells(lrLD + 1, "S").Value = Controls("LWY" & i).Value
+            LD.Cells(lrLD + 1, "T").Value = Controls("SWY" & i).Value
+            LD.Cells(lrLD + 1, "U").Value = Controls("EWY" & i).Value
+                For y = 1 To 28
+                    If Controls("DON" & i).Value = Controls("CN" & y).Value Then
+                        LD.Cells(lrLD + 1, "AH").Value = Controls("LWYF" & y).Value
+                        LD.Cells(lrLD + 1, "AI").Value = Controls("SWYF" & y).Value
+                        LD.Cells(lrLD + 1, "AJ").Value = Controls("FPYF" & y).Value
+                    End If
+                Next y
+            LD.Cells(lrLD + 1, "AK").Value = Controls("LWYF" & i).Value
+            LD.Cells(lrLD + 1, "AL").Value = Controls("SWYF" & i).Value
+            LD.Cells(lrLD + 1, "AM").Value = Controls("FPYF" & i).Value
+        End If
+    End If
+
+'Populates Field Duplicates Worksheet
+lrFD = Sheets("Field Duplicates").Range("A" & Rows.Count).End(xlUp).Row
+
+    If Controls("DT" & i).Value <> "" Then
+        If Controls("DT" & i).Value = "FD" Then
+            FD.Cells(lrFD + 1, "A").Value = SampleID.Value
+            FD.Cells(lrFD + 1, "B").Value = SampleDate.Value
+            FD.Cells(lrFD + 1, "C").Value = SampleYear.Value
+            FD.Cells(lrFD + 1, "D").Value = SamplerName.Value
+            FD.Cells(lrFD + 1, "E").Value = ProcessorName.Value
+            FD.Cells(lrFD + 1, "F").Value = ReaderName.Value
+            FD.Cells(lrFD + 1, "G").Value = ArrivalTime.Value
+            FD.Cells(lrFD + 1, "H").Value = IntoIncubator.Value
+            FD.Cells(lrFD + 1, "I").Value = OutIncubator.Value
+            FD.Cells(lrFD + 1, "K").Value = Controls("SID" & i).Value
+            FD.Cells(lrFD + 1, "L").Value = Controls("DON" & i).Value
+            FD.Cells(lrFD + 1, "M").Value = Controls("CN" & i).Value
+                For y = 1 To 28
+                    If Controls("DON" & i).Value = Controls("CN" & y).Value Then
+                        FD.Cells(lrFD + 1, "N").Value = Controls("LWY" & y).Value
+                        FD.Cells(lrFD + 1, "O").Value = Controls("SWY" & y).Value
+                        FD.Cells(lrFD + 1, "P").Value = Controls("EWY" & y).Value
+                    End If
+                Next y
+            FD.Cells(lrFD + 1, "Q").Value = Controls("LWY" & i).Value
+            FD.Cells(lrFD + 1, "R").Value = Controls("SWY" & i).Value
+            FD.Cells(lrFD + 1, "S").Value = Controls("EWY" & i).Value
+                For y = 1 To 28
+                    If Controls("DON" & i).Value = Controls("CN" & y).Value Then
+                        FD.Cells(lrFD + 1, "AF").Value = Controls("LWYF" & y).Value
+                        FD.Cells(lrFD + 1, "AG").Value = Controls("SWYF" & y).Value
+                        FD.Cells(lrFD + 1, "AH").Value = Controls("FPYF" & y).Value
+                    End If
+                Next y
+            FD.Cells(lrFD + 1, "AI").Value = Controls("LWYF" & i).Value
+            FD.Cells(lrFD + 1, "AJ").Value = Controls("SWYF" & i).Value
+            FD.Cells(lrFD + 1, "AK").Value = Controls("FPYF" & i).Value
+        End If
+    End If
+
+'Populates Lab Blank Worksheet
+lrLB = Sheets("Lab Blank").Range("A" & Rows.Count).End(xlUp).Row
+
+    If Controls("DT" & i).Value <> "" Then
+        If Controls("DT" & i).Value = "LB" Then
+            LB.Cells(lrLB + 1, "A").Value = SampleID.Value
+            LB.Cells(lrLB + 1, "B").Value = SampleDate.Value
+            LB.Cells(lrLB + 1, "C").Value = SamplerName.Value
+            LB.Cells(lrLB + 1, "D").Value = ProcessorName.Value
+            LB.Cells(lrLB + 1, "E").Value = ReaderName.Value
+            LB.Cells(lrLB + 1, "F").Value = ArrivalTime.Value
+            LB.Cells(lrLB + 1, "G").Value = IntoIncubator.Value
+            LB.Cells(lrLB + 1, "H").Value = OutIncubator.Value
+            LB.Cells(lrLB + 1, "J").Value = Controls("CN" & i).Value
+            LB.Cells(lrLB + 1, "K").Value = "5S"
+            LB.Cells(lrLB + 1, "L").Value = "Lab"
+            LB.Cells(lrLB + 1, "M").Value = Controls("LWY" & i).Value
+            LB.Cells(lrLB + 1, "N").Value = Controls("SWY" & i).Value
+            LB.Cells(lrLB + 1, "O").Value = Controls("EWY" & i).Value
+            LB.Cells(lrLB + 1, "R").Value = Controls("LWYF" & i).Value
+            LB.Cells(lrLB + 1, "S").Value = Controls("SWYF" & i).Value
+            LB.Cells(lrLB + 1, "T").Value = Controls("FPYF" & i).Value
+        End If
+    End If
+
+'Populates Field Blank Worksheet
+lrFB = Sheets("Field Blank").Range("A" & Rows.Count).End(xlUp).Row
+
+    If Controls("DT" & i).Value <> "" Then
+        If Controls("DT" & i).Value = "FB" Then
+            FB.Cells(lrFB + 1, "A").Value = SampleID.Value
+            FB.Cells(lrFB + 1, "B").Value = SampleDate.Value
+            FB.Cells(lrFB + 1, "C").Value = SamplerName.Value
+            FB.Cells(lrFB + 1, "D").Value = ProcessorName.Value
+            FB.Cells(lrFB + 1, "E").Value = ReaderName.Value
+            FB.Cells(lrFB + 1, "F").Value = ArrivalTime.Value
+            FB.Cells(lrFB + 1, "G").Value = IntoIncubator.Value
+            FB.Cells(lrFB + 1, "H").Value = OutIncubator.Value
+            FB.Cells(lrFB + 1, "J").Value = Controls("CN" & i).Value
+            FB.Cells(lrFB + 1, "K").Value = Controls("SID" & i).Value
+            FB.Cells(lrFB + 1, "L").Value = "Lab"
+            FB.Cells(lrFB + 1, "M").Value = Controls("LWY" & i).Value
+            FB.Cells(lrFB + 1, "N").Value = Controls("SWY" & i).Value
+            FB.Cells(lrFB + 1, "O").Value = Controls("EWY" & i).Value
+            FB.Cells(lrFB + 1, "R").Value = Controls("LWYF" & i).Value
+            FB.Cells(lrFB + 1, "S").Value = Controls("SWYF" & i).Value
+            FB.Cells(lrFB + 1, "T").Value = Controls("FPYF" & i).Value
+        End If
+    End If
+ 
+Next i
+
+Application.ScreenUpdating = True
+Application.StatusBar = "Done!"
+Application.StatusBar = False
+
+QAResults.Show
+
+End Sub
+
+
+Private Sub FlourescenceLabel_Click()
+
+End Sub
+
+
+Private Sub SubmitDataPage1_Change()
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''' This sub copies all the relevant data from the userform into the Bacteria  '''''
+''''' worksheet, it has conditions that should account for any variance in the   '''''
+''''' data entry requirements. Obviously if these change someone will have to    '''''
+''''' come and change the code to accomodate these changes.                      '''''
+'''''                                                                            '''''
+''''' Written by: Michael Sekigahama                            07/12/17         '''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+Dim lrRslt As Long     'Last Row Bacteria Worksheet
+Dim lrLB As Long        'Last Row LabBatch Worksheet
+Dim lrMPN As Long       'Last Row MPN_Table Worksheet
+Dim lrCL As Long        'Last Row Confidence_Limits Worksheet
+Dim lrCalc As Long      'Last Row Calculations Worksheet
+Dim i As Integer        'used in loop
+Dim p As Integer        'used in loop
+
+Dim Rslt As Worksheet      'Bacteria Worksheet
+Dim Batch As Worksheet      'LabBatch Worksheet
+Dim MPN As Worksheet        'MPN_Table Worksheet
+Dim CL As Worksheet         'Confidence_Limits Worksheet
+Dim Calc As Worksheet       'Calculations Worksheet
+Dim LD As Worksheet         'Lab Duplicates Worksheet
+Dim FD As Worksheet         'Field Duplicates Worksheet
+Dim LB As Worksheet         'Lab Blank Worksheet
+Dim FB As Worksheet         'Field Blank Worksheet
+
+Dim BDE As Workbook
+
+Set BDE = Workbooks("R5 Sac Bacteria Data Entry Template.xlsm")
+
+        '''''''''''' Beginning of Total Coliform Data Row ''''''''''''''''''
+
+Set Rslt = Sheets("Results")
+Set Batch = Sheets("LabBatch")
+Set LB = Sheets("LabBatch")
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+Set Calc = Sheets("Calculations")
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+
+'This with statement deletes the previous data before entering the new set
+With Rslt
+
+    If .Cells(.Rows.Count, "A").End(xlUp).Row > 1 Then
+        Rslt.Rows("2:200").Delete
+    End If
+
+End With
+
+'This deletes the previous data before entering new Lab Batch info
+With Batch
+    If .Cells(.Rows.Count, "A").End(xlUp).Row > 1 Then
+        Batch.Rows("2:5").Delete
+    End If
+End With
+
+'Enters the LabBatch data into the LabBatch worksheet
+lrLB = Sheets("LabBatch").Range("A" & Rows.Count).End(xlUp).Row
+
+Batch.Cells(lrLB + 1, "A").Value = LabAgency.Value & "_" & SampleID.Value & "_" & LabBatchProject.Value & "_W_Bac"
+Batch.Cells(lrLB + 1, "B").Value = AgencyCode.Value
+Batch.Cells(lrLB + 1, "C").Value = "A"
+Batch.Cells(lrLB + 1, "D").Value = LabAgency.Value
+Batch.Cells(lrLB + 2, "A").Value = "R5S_W_Bac_" & LabAgency.Value & "_" & SampleID.Value & "_" & LabBatchProject.Value
+Batch.Cells(lrLB + 2, "B").Value = "You can ignore this row. It will be deleted automatically when you save the final file. The text to the left will become the file name when you save for upload."
+
+'Enters the Bacteria Lab data into the Bacteria worksheet
+For i = 1 To 28
+lrRslt = Sheets("Results").Range("A" & Rows.Count).End(xlUp).Row
+
+
+    If Me.Controls("ST" & i).Value = "" Then
+        Else
+    
+        If Me.Controls("DT" & i).Value = "" Then
+            Rslt.Cells(lrRslt + 1, "A").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "A"
+            Rslt.Cells(lrRslt + 1, "B").Value = Controls("SID" & i).Value
+            Rslt.Cells(lrRslt + 1, "D").Value = ProtocolCode.Value
+            Rslt.Cells(lrRslt + 1, "E").Value = "Bank"
+            Rslt.Cells(lrRslt + 1, "F").Value = SampleDate.Value
+            Rslt.Cells(lrRslt + 1, "H").Value = "Water_Grab"
+            Rslt.Cells(lrRslt + 1, "I").Value = "Grab"
+            Rslt.Cells(lrRslt + 1, "K").Value = "0.1"
+            Rslt.Cells(lrRslt + 1, "M").Value = ProjectCode.Value
+            Rslt.Cells(lrRslt + 1, "P").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "A"
+            Rslt.Cells(lrRslt + 1, "W").Value = "1"
+            Rslt.Cells(lrRslt + 1, "X").Value = "samplewater"
+        Else
+            If Me.Controls("DT" & i).Value = "FD" Then
+                Rslt.Cells(lrRslt + 1, "A").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "D"
+                Rslt.Cells(lrRslt + 1, "B").Value = Controls("SID" & i).Value
+                Rslt.Cells(lrRslt + 1, "D").Value = ProtocolCode.Value
+                Rslt.Cells(lrRslt + 1, "E").Value = "Bank"
+                Rslt.Cells(lrRslt + 1, "F").Value = SampleDate.Value
+                Rslt.Cells(lrRslt + 1, "H").Value = "Water_Grab"
+                Rslt.Cells(lrRslt + 1, "I").Value = "FieldBLDup_Grab"
+                Rslt.Cells(lrRslt + 1, "K").Value = "0.1"
+                Rslt.Cells(lrRslt + 1, "M").Value = ProjectCode.Value
+                Rslt.Cells(lrRslt + 1, "P").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "D"
+                Rslt.Cells(lrRslt + 1, "W").Value = "1"
+                Rslt.Cells(lrRslt + 1, "X").Value = "samplewater"
+            Else
+                If Me.Controls("DT" & i).Value = "LD" Then
+                    Rslt.Cells(lrRslt + 1, "A").Value = SampleID.Value & "-" & Me.Controls("DON" & i).Value & "A" & "-Dup"
+                    Rslt.Cells(lrRslt + 1, "B").Value = Controls("SID" & i).Value
+                    Rslt.Cells(lrRslt + 1, "D").Value = ProtocolCode.Value
+                    Rslt.Cells(lrRslt + 1, "E").Value = "Bank"
+                    Rslt.Cells(lrRslt + 1, "F").Value = SampleDate.Value
+                    Rslt.Cells(lrRslt + 1, "H").Value = "Water_Grab"
+                    Rslt.Cells(lrRslt + 1, "I").Value = "Grab"
+                    Rslt.Cells(lrRslt + 1, "K").Value = "0.1"
+                    Rslt.Cells(lrRslt + 1, "M").Value = ProjectCode.Value
+                    Rslt.Cells(lrRslt + 1, "P").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "LD"
+                    Rslt.Cells(lrRslt + 1, "W").Value = "2"
+                    Rslt.Cells(lrRslt + 1, "X").Value = "samplewater"
+                    Else
+                        If Me.Controls("DT" & i).Value = "FB" Then
+                            Rslt.Cells(lrRslt + 1, "A").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "FB"
+                            Rslt.Cells(lrRslt + 1, "B").Value = Controls("SID" & i).Value
+                            Rslt.Cells(lrRslt + 1, "D").Value = ProtocolCode.Value
+                            Rslt.Cells(lrRslt + 1, "E").Value = "Bank"
+                            Rslt.Cells(lrRslt + 1, "F").Value = SampleDate.Value
+                            Rslt.Cells(lrRslt + 1, "H").Value = "Not Applicable"
+                            Rslt.Cells(lrRslt + 1, "I").Value = "FieldBlank"
+                            Rslt.Cells(lrRslt + 1, "K").Value = "-88"
+                            Rslt.Cells(lrRslt + 1, "M").Value = ProjectCode.Value
+                            Rslt.Cells(lrRslt + 1, "P").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "FB"
+                            Rslt.Cells(lrRslt + 1, "W").Value = "1"
+                            Rslt.Cells(lrRslt + 1, "X").Value = "blankwater"
+                        Else
+                            If Me.Controls("DT" & i).Value = "LB" Then
+                                Rslt.Cells(lrRslt + 1, "A").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "LB"
+                                Rslt.Cells(lrRslt + 1, "B").Value = "LABQA"
+                                Rslt.Cells(lrRslt + 1, "D").Value = "Not Applicable"
+                                Rslt.Cells(lrRslt + 1, "E").Value = "Not Applicable"
+                                Rslt.Cells(lrRslt + 1, "F").Value = AnalysisDate.Value
+                                Rslt.Cells(lrRslt + 1, "H").Value = "Not Applicable"
+                                Rslt.Cells(lrRslt + 1, "I").Value = "LabBlank"
+                                Rslt.Cells(lrRslt + 1, "K").Value = "-88"
+                                Rslt.Cells(lrRslt + 1, "M").Value = "Not Applicable"
+                                Rslt.Cells(lrRslt + 1, "P").Value = SampleID.Value & "-" & Me.Controls("CN" & i).Value & "LB"
+                                Rslt.Cells(lrRslt + 1, "W").Value = "1"
+                                Rslt.Cells(lrRslt + 1, "X").Value = "blankwater"
+                            Else
+                            End If
+                        End If
+                    End If
+                End If
+            End If
+    
+        
+    Rslt.Cells(lrRslt + 1, "C").Value = "WQ"
+    Rslt.Cells(lrRslt + 1, "G").Value = Controls("ST" & i).Value
+    Rslt.Cells(lrRslt + 1, "J").Value = "1"
+    Rslt.Cells(lrRslt + 1, "L").Value = "m"
+    Rslt.Cells(lrRslt + 1, "N").Value = AgencyCode.Value
+    Rslt.Cells(lrRslt + 1, "Q").Value = "Antifoam, Media"
+    Rslt.Cells(lrRslt + 1, "R").Value = ProcessDate.Value & " " & ProcessTime.Value
+    Rslt.Cells(lrRslt + 1, "S").Value = "None"
+    Rslt.Cells(lrRslt + 1, "T").Value = "01/Jan/1950 00:00"
+    Rslt.Cells(lrRslt + 1, "U").Value = "RWQCB5S_" & SampleID.Value & "_" & LabBatchProject.Value & "_W_Bac"
+    Rslt.Cells(lrRslt + 1, "V").Value = AnalysisDate.Value & " " & AnalysisTime.Value
+    Rslt.Cells(lrRslt + 1, "Y").Value = "SM 9223 B-SOP ASWAU"
+    Rslt.Cells(lrRslt + 1, "Z").Value = "Coliform, Total"
+    Rslt.Cells(lrRslt + 1, "AA").Value = "None"
+    Rslt.Cells(lrRslt + 1, "AB").Value = "MPN/100 mL"
+    Rslt.Cells(lrRslt + 1, "AC").Value = "1"
+    
+    If Controls("MPNY" & i).Value = ">2419.6" Then
+        Rslt.Cells(lrRslt + 1, "AD").Value = "2419.6"
+        Rslt.Cells(lrRslt + 1, "AE").Value = ">"
+        Else
+            If Controls("MPNY" & i).Value = "< 1.0" Then
+                Rslt.Cells(lrRslt + 1, "AD").Value = "-88"
+                Rslt.Cells(lrRslt + 1, "AE").Value = "ND"
+                    Else
+                        Rslt.Cells(lrRslt + 1, "AD").Value = Controls("MPNY" & i).Value
+            End If
+    End If
+
+    Rslt.Cells(lrRslt + 1, "AF").Value = "-88"
+    Rslt.Cells(lrRslt + 1, "AG").Value = "1.0"
+    If Controls("QAY" & i & "A").Value = "" Then
+        Rslt.Cells(lrRslt + 1, "AH").Value = "None"
+            Else
+                Rslt.Cells(lrRslt + 1, "AH").Value = Controls("QAY" & i & "A").Value
+    End If
+    
+    
+                '''''''''''' This part pairs the dups with their originals and places
+                '''''''''''' the expected values where needed.
+                
+    ' Total Coliforms
+    For p = 1 To 28
+    If Me.Controls("DT" & i).Value = "FD" Or Me.Controls("DT" & i).Value = "LD" Then
+        If Me.Controls("DON" & i).Value = Me.Controls("CN" & p).Value Then
+            Rslt.Cells(lrRslt + 1, "AI").Value = Me.Controls("MPNY" & p).Value
+                If Me.Controls("MPNY" & p).Value = ">2419.6" Then
+                    Rslt.Cells(lrRslt + 1, "AI").Value = "2419.6"
+                    Rslt.Cells(lrRslt + 1, "AJ").Value = "NA duplicate results not quantifiable"
+                Else
+                    Rslt.Cells(lrRslt + 1, "AJ").Value = Me.Controls("QAY" & i & "B").Value
+                End If
+        End If
+    End If
+
+    Next p
+    
+    
+''''''''' Beginning of E. Coli Data Row '''''''''''''''
+    
+        If Controls("DT" & i).Value = "" Then
+            Rslt.Cells(lrRslt + 2, "A").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "A"
+            Rslt.Cells(lrRslt + 2, "B").Value = Controls("SID" & i).Value
+            Rslt.Cells(lrRslt + 2, "D").Value = ProtocolCode.Value
+            Rslt.Cells(lrRslt + 2, "E").Value = "Bank"
+            Rslt.Cells(lrRslt + 2, "F").Value = SampleDate.Value
+            Rslt.Cells(lrRslt + 2, "H").Value = "Water_Grab"
+            Rslt.Cells(lrRslt + 2, "I").Value = "Grab"
+            Rslt.Cells(lrRslt + 2, "K").Value = "0.1"
+            Rslt.Cells(lrRslt + 2, "M").Value = ProjectCode.Value
+            Rslt.Cells(lrRslt + 2, "P").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "A"
+            Rslt.Cells(lrRslt + 2, "W").Value = "1"
+            Rslt.Cells(lrRslt + 2, "X").Value = "samplewater"
+        Else
+            If Controls("DT" & i).Value = "FD" Then
+                Rslt.Cells(lrRslt + 2, "A").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "D"
+                Rslt.Cells(lrRslt + 2, "B").Value = Controls("SID" & i).Value
+                Rslt.Cells(lrRslt + 2, "D").Value = ProtocolCode.Value
+                Rslt.Cells(lrRslt + 2, "E").Value = "Bank"
+                Rslt.Cells(lrRslt + 2, "F").Value = SampleDate.Value
+                Rslt.Cells(lrRslt + 2, "H").Value = "Water_Grab"
+                Rslt.Cells(lrRslt + 2, "I").Value = "FieldBLDup_Grab"
+                Rslt.Cells(lrRslt + 2, "K").Value = "0.1"
+                Rslt.Cells(lrRslt + 2, "M").Value = ProjectCode.Value
+                Rslt.Cells(lrRslt + 2, "P").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "D"
+                Rslt.Cells(lrRslt + 2, "W").Value = "1"
+                Rslt.Cells(lrRslt + 2, "X").Value = "samplewater"
+            Else
+                If Controls("DT" & i).Value = "LD" Then
+                    Rslt.Cells(lrRslt + 2, "A").Value = SampleID.Value & "-" & Controls("DON" & i).Value & "A" & "-Dup"
+                    Rslt.Cells(lrRslt + 2, "B").Value = Controls("SID" & i).Value
+                    Rslt.Cells(lrRslt + 2, "D").Value = ProtocolCode.Value
+                    Rslt.Cells(lrRslt + 2, "E").Value = "Bank"
+                    Rslt.Cells(lrRslt + 2, "F").Value = SampleDate.Value
+                    Rslt.Cells(lrRslt + 2, "H").Value = "Water_Grab"
+                    Rslt.Cells(lrRslt + 2, "I").Value = "Grab"
+                    Rslt.Cells(lrRslt + 2, "K").Value = "0.1"
+                    Rslt.Cells(lrRslt + 2, "M").Value = ProjectCode.Value
+                    Rslt.Cells(lrRslt + 2, "P").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "LD"
+                    Rslt.Cells(lrRslt + 2, "W").Value = "2"
+                    Rslt.Cells(lrRslt + 2, "X").Value = "samplewater"
+                Else
+                    If Controls("DT" & i).Value = "FB" Then
+                        Rslt.Cells(lrRslt + 2, "A").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "FB"
+                        Rslt.Cells(lrRslt + 2, "B").Value = Controls("SID" & i).Value
+                        Rslt.Cells(lrRslt + 2, "D").Value = ProtocolCode.Value
+                        Rslt.Cells(lrRslt + 2, "E").Value = "Bank"
+                        Rslt.Cells(lrRslt + 2, "F").Value = SampleDate.Value
+                        Rslt.Cells(lrRslt + 2, "H").Value = "Not Applicable"
+                        Rslt.Cells(lrRslt + 2, "I").Value = "FieldBlank"
+                        Rslt.Cells(lrRslt + 2, "K").Value = "-88"
+                        Rslt.Cells(lrRslt + 2, "M").Value = ProjectCode.Value
+                        Rslt.Cells(lrRslt + 2, "P").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "FB"
+                        Rslt.Cells(lrRslt + 2, "W").Value = "1"
+                        Rslt.Cells(lrRslt + 2, "X").Value = "blankwater"
+                    Else
+                        If Controls("DT" & i).Value = "LB" Then
+                            Rslt.Cells(lrRslt + 2, "A").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "LB"
+                            Rslt.Cells(lrRslt + 2, "B").Value = "LABQA"
+                            Rslt.Cells(lrRslt + 2, "D").Value = "Not Applicable"
+                            Rslt.Cells(lrRslt + 2, "E").Value = "Not Applicable"
+                            Rslt.Cells(lrRslt + 2, "F").Value = AnalysisDate.Value
+                            Rslt.Cells(lrRslt + 2, "H").Value = "Not Applicable"
+                            Rslt.Cells(lrRslt + 2, "I").Value = "LabBlank"
+                            Rslt.Cells(lrRslt + 2, "K").Value = "-88"
+                            Rslt.Cells(lrRslt + 2, "M").Value = "Not Applicable"
+                            Rslt.Cells(lrRslt + 2, "P").Value = SampleID.Value & "-" & Controls("CN" & i).Value & "LB"
+                            Rslt.Cells(lrRslt + 2, "W").Value = "1"
+                            Rslt.Cells(lrRslt + 2, "X").Value = "blankwater"
+
+                        End If
+                    End If
+                End If
+            End If
+        End If
+       
+    Rslt.Cells(lrRslt + 2, "C").Value = "WQ"
+    Rslt.Cells(lrRslt + 2, "G").Value = Controls("ST" & i).Value
+    Rslt.Cells(lrRslt + 2, "J").Value = "1"
+    Rslt.Cells(lrRslt + 2, "L").Value = "m"
+    Rslt.Cells(lrRslt + 2, "N").Value = AgencyCode.Value
+    Rslt.Cells(lrRslt + 2, "Q").Value = "Antifoam, Media"
+    Rslt.Cells(lrRslt + 2, "R").Value = ProcessDate.Value & " " & ProcessTime.Value
+    Rslt.Cells(lrRslt + 2, "S").Value = "None"
+    Rslt.Cells(lrRslt + 2, "T").Value = "01/Jan/1950 00:00"
+    Rslt.Cells(lrRslt + 2, "U").Value = "RWQCB5S_" & SampleID.Value & "_" & LabBatchProject.Value & "_W_Bac"
+    Rslt.Cells(lrRslt + 2, "V").Value = AnalysisDate.Value & " " & AnalysisTime.Value
+    Rslt.Cells(lrRslt + 2, "Y").Value = "SM 9223 B-SOP ASWAU"
+    Rslt.Cells(lrRslt + 2, "Z").Value = "E. Coli"
+    Rslt.Cells(lrRslt + 2, "AA").Value = "None"
+    Rslt.Cells(lrRslt + 2, "AB").Value = "MPN/100 mL"
+    Rslt.Cells(lrRslt + 2, "AC").Value = "1"
+    
+    If Controls("MPNYF" & 2).Value = ">2419.6" Then
+        Rslt.Cells(lrRslt + 2, "AD").Value = "2419.6"
+        Rslt.Cells(lrRslt + 2, "AE").Value = ">"
+            Else
+                If Controls("MPNYF" & i).Value = "< 1.0" Then
+                    Rslt.Cells(lrRslt + 2, "AD").Value = "-88"
+                    Rslt.Cells(lrRslt + 2, "AE").Value = "ND"
+                        Else
+                            Rslt.Cells(lrRslt + 2, "AD").Value = Controls("MPNYF" & i).Value
+            End If
+    End If
+    
+    Rslt.Cells(lrRslt + 2, "AF").Value = "-88"
+    Rslt.Cells(lrRslt + 2, "AG").Value = "1.0"
+    If Controls("QAYF" & i & "A").Value = "" Then
+        Rslt.Cells(lrRslt + 2, "AH").Value = "None"
+            Else
+                Rslt.Cells(lrRslt + 2, "AH").Value = Controls("QAYF" & i & "A").Value
+    End If
+    
+    
+                '''''''''''' This part pairs the dups with their originals and places
+                '''''''''''' the expected values where needed.
+                
+    'E. Coli for Column One
+    For p = 1 To 28
+    If Me.Controls("DT" & i).Value = "FD" Or Me.Controls("DT" & i).Value = "LD" Then
+        If Me.Controls("DON" & i).Value = Controls("CN" & p).Value Then
+            Rslt.Cells(lrRslt + 2, "AI").Value = Me.Controls("MPNYF" & p).Value
+                If Me.Controls("MPNYF" & p).Value = ">2419.6" Then
+                    Rslt.Cells(lrRslt + 2, "AI").Value = "2419.6"
+                    Rslt.Cells(lrRslt + 2, "AJ").Value = "NA duplicate results not quantifiable"
+                        Else
+                            Rslt.Cells(lrRslt + 2, "AJ").Value = Me.Controls("QAYF" & i & "B").Value
+                End If
+        End If
+    End If
+
+    Next p
+    
+End If
+    
+Next i
+
+If MsgBox("The data has been successfully added. Scan through the entered data to make sure everything looks right.", vbOKOnly, "Incoming message...") Then
+End If
+
+End Sub
+
+
+Private Sub SubmitButton_Click()
+
+If MsgBox("You are about to submit. Yes?", vbYesNo) = vbYes Then
+SubmitDataPage1_Change
+
+End If
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub

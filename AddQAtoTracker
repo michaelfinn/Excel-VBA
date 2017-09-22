@@ -1,0 +1,97 @@
+Sub AddQAtoTracker_Activate()
+
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''' This code deletes all sheets that aren't QA related ''''''
+'''''' in the workbook then overwrites and saves the file  ''''''
+'''''' as the new version of the tracking log.             ''''''
+''''''                                                     ''''''
+'''''' Written by Michael Sekigahama        12 July 2017   ''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+
+
+Dim Rslt As Worksheet
+Dim LbB As Worksheet
+Dim MPN As Worksheet
+Dim CL As Worksheet
+Dim FD As Worksheet    'Field Duplicates Worksheet
+Dim LD As Worksheet   'Lab Duplicates Worksheet
+Dim LB As Worksheet     'Lab Blank Worksheet
+Dim FB As Worksheet     'Field Blank Worksheet
+Dim Calc As Worksheet   'Calculations Worksheet
+Dim sh As Worksheet
+Dim Tracking As Workbook
+Dim Bacteria As Workbook
+Dim wbPath As String
+
+
+Set Bacteria = Workbooks("R5 Sac Bacteria Data Entry Template.xlsm")
+Set Rslt = Sheets("Results")
+Set LbB = Sheets("LabBatch")
+Set Calc = Sheets("Calculations")
+Set MPN = Sheets("MPN_Table")
+Set CL = Sheets("Confidence_Limits")
+Set LD = Sheets("Lab Duplicates")
+Set FD = Sheets("Field Duplicates")
+Set LB = Sheets("Lab Blank")
+Set FB = Sheets("Field Blank")
+
+Application.Cursor = xlWait
+Application.DisplayAlerts = False
+Application.ScreenUpdating = False
+
+wbPath = "R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Bacti QA\Archives"
+
+'This opens the existing QA tracking log file
+Workbooks.Open ("R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Bacti QA\R5 Sac Bacteria QA Tracking Log.xlsm")
+'This saves a copy of it in the Archives folder
+Workbooks("R5 Sac Bacteria QA Tracking Log.xlsm").SaveCopyAs wbPath & "\" & Format(Now, "yyyy_mm_dd hh_mm") & "   R5 Sac Bacteria QA Tracking Log" & ".xlsm"
+'This closes the file
+Workbooks("R5 Sac Bacteria QA Tracking Log.xlsm").Close
+
+'This rewrites the old QA tracking log file and saves your new data entry file in it's place
+Bacteria.SaveCopyAs (["R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Bacti QA\R5 Sac Bacteria QA Tracking Log.xlsm"])
+'This opens that newly overwritten file
+'At this point in the code you have two files open with different names but otherwise identical as far as data
+Workbooks.Open ("R:\RB5\R5SSections\TMDL Basin NPS Delta\Units\SWAMP\SWAMP Database\Bacti QA\R5 Sac Bacteria QA Tracking Log.xlsm")
+
+'This next part takes your new tracking log file, which is really just a copy of the current data entry file your working on,
+'and deletes the worksheets you don't need as part of the QA Tracking log. It also copy pastes all QA data entry as values
+'so the workbook doesn't constantly calculate the formulas everytime it's opened. This makes the process faster.
+Set Tracking = Workbooks("R5 Sac Bacteria QA Tracking Log.xlsm")
+       
+    With Tracking
+        Sheets("How to Use").Delete
+        Sheets("Results").Delete
+        Sheets("Calculations").Delete
+        Sheets("LabBatch").Delete
+    End With
+       
+    For Each sh In Tracking.Worksheets
+        If sh.Visible = True Then
+            sh.Activate
+            sh.UsedRange.Copy
+            sh.Range("A1").PasteSpecial xlPasteValues
+            sh.Range("A1").Select
+        End If
+    Next sh
+    Application.CutCopyMode = False
+    
+    With Tracking
+        Sheets("Lab Duplicates").Activate
+        Sheets("MPN_Table").Delete
+        Sheets("Confidence_Limits").Delete
+    End With
+    
+Tracking.Save
+Tracking.Close
+
+If MsgBox("Your QA data has been updated and saved.", vbOKOnly, "Incoming message...") Then
+End If
+
+Application.Cursor = xlDefault
+
+End Sub

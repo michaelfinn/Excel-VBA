@@ -1,0 +1,363 @@
+Public CalcState As Long
+Public EventState As Boolean
+Public PageBreakState As Boolean
+
+Sub OptimizeCode_Begin()
+
+Application.ScreenUpdating = False
+
+EventState = Application.EnableEvents
+Application.EnableEvents = False
+
+CalcState = Application.Calculation
+Application.Calculation = xlCalculationManual
+
+'PageBreakState = ActiveSheet.DisplayPageBreaks
+'ActiveSheet.DisplayPageBreaks = False
+
+End Sub
+
+Sub OptimizeCode_End()
+
+'ActiveSheet.DisplayPageBreaks = PageBreakState
+CalcState = Application.Calculation
+Application.Calculation = xlCalculationAutomatic
+Application.EnableEvents = EventState
+Application.ScreenUpdating = True
+
+End Sub
+
+Sub Trnsfr_Citn()
+
+Dim rptWB As Workbook
+Dim summWB As Workbook
+Dim tempWB As Workbook
+Dim wbnme As String
+Dim wbnme2 As String
+Dim wbsht As String
+Dim month As String
+Dim sectype As String
+Dim col As String
+Dim wb As Worksheet
+Dim rwb As Worksheet
+Dim Section(1 To 7) As Worksheet
+'Dim B As Worksheet
+'Dim N As Worksheet
+' Dim SD As Worksheet
+'Dim S As Worksheet
+'Dim BA As Worksheet
+'Dim D As Worksheet
+
+Dim I As Integer
+Dim p As Integer
+Dim n As Integer
+
+Set tempWB = ActiveWorkbook
+
+wbnme = tempWB.Sheets("Inspections").Range("A30").Text
+wbnme2 = tempWB.Sheets("Inspections").Range("A31").Text
+
+Set summWB = Workbooks(wbnme)
+Set rptWB = Workbooks(wbnme2)
+
+Set wb = Sheets("Inspections")
+Set rwb = ActiveSheet
+
+
+Set Section(1) = rptWB.Sheets("BORDER")
+Set Section(2) = rptWB.Sheets("NORTH")
+Set Section(3) = rptWB.Sheets("SDCAPCD")
+Set Section(4) = rptWB.Sheets("SOUTH")
+Set Section(5) = rptWB.Sheets("BAAQMD")
+Set Section(6) = rptWB.Sheets("DEES")
+Set Section(7) = rptWB.Sheets("STBES")
+
+month = summWB.Sheets("Inspections").Range("L1").Value
+sectype = summWB.Sheets("Inspections").Range("O1").Value
+
+Call OptimizeCode_Begin
+
+'Month_Select.Show
+
+'Identifies type of report so it can transfer the data to the right cells for ALL SECTIONS
+If summWB.Sheets("Inspections").Cells(1, "N").Value = "Inspections" Then
+    If summWB.Sheets("Inspections").Cells(1, "O").Value = "ALL SECTIONS" Then
+'If it's all sections then it goes through each worksheet and zeros out all values for that month
+            For p = 1 To 7
+                Section(p).Range(month & "5:" & month & "16").Value = "0"
+                Section(p).Cells(18, month).Value = "0"
+            Next p
+'If it's just one section it zeros out only the section the report applies to
+                Else
+                    For p = 1 To 7
+                            
+                        If Section(p).name = sectype Then
+                            Section(p).Range(month & "5:" & month & "16").Value = "0"
+                            Section(p).Cells(18, month).Value = "0"
+                        End If
+                    Next p
+    End If
+            With summWB
+                For n = 2 To 8
+                    For p = 1 To 7
+                            
+                        If wb.Cells(5, n).Value = Section(p).name Then
+            
+                            For I = 6 To 22
+                
+                                If wb.Cells(I, "A").Value = "HDVIP ECL" Then
+                                    Section(p).Cells(6, month).Value = _
+                                    Section(p).Cells(6, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "HDVIP DEF" Then
+                                    Section(p).Cells(14, month).Value = _
+                                    Section(p).Cells(14, month).Value + wb.Cells(I, n).Value
+                                End If
+                    
+                                If wb.Cells(I, "A").Value = "HDVIP Quick Snap" Then
+                                    Section(p).Cells(5, month).Value = _
+                                    Section(p).Cells(5, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "HDVIP Tampering" Then
+                                    Section(p).Cells(5, month).Value = _
+                                    Section(p).Cells(5, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "HDVIP Refusal/Reinsp" Then
+                                    Section(p).Cells(5, month).Value = _
+                                    Section(p).Cells(5, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Drayage" Then
+                                    Section(p).Cells(11, month).Value = _
+                                    Section(p).Cells(11, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Idling School Bus" Then
+                                    Section(p).Cells(15, month).Value = _
+                                    Section(p).Cells(15, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Idling Commercial" Then
+                                    Section(p).Cells(7, month).Value = _
+                                    Section(p).Cells(7, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "SWC" Then
+                                    Section(p).Cells(8, month).Value = _
+                                    Section(p).Cells(8, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Off-Road" Then
+                                    Section(p).Cells(13, month).Value = _
+                                    Section(p).Cells(13, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Idling Off-Road" Then
+                                    Section(p).Cells(13, month).Value = _
+                                    Section(p).Cells(13, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "TRU" Then
+                                    Section(p).Cells(12, month).Value = _
+                                    Section(p).Cells(12, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Truck & Bus" Then
+                                    Section(p).Cells(9, month).Value = _
+                                    Section(p).Cells(9, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Smart Way" Then
+                                    Section(p).Cells(10, month).Value = _
+                                    Section(p).Cells(10, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "PAU" Then
+                                    Section(p).Cells(16, month).Value = _
+                                    Section(p).Cells(16, month).Value + wb.Cells(I, n).Value
+                                End If
+                                
+                                If wb.Cells(I, "A").Value = "Environmental Justice" Then
+                                    Section(p).Cells(18, month).Value = _
+                                    Section(p).Cells(18, month).Value + wb.Cells(I, n).Value
+                                End If
+                            Next I
+                        End If
+                    Next p
+                Next n
+            End With
+
+End If
+
+'Identifies type of report so it can transfer the data to the right cells
+If summWB.Sheets("Inspections").Cells(1, "N").Value = "Citations" Then
+    If summWB.Sheets("Inspections").Cells(1, "O").Value = "ALL SECTIONS" Then
+'If it's all sections then it goes through each worksheet and zeros out all values for that month
+        For p = 1 To 7
+            Section(p).Range(month & "19:" & month & "30").Value = "0"
+            Section(p).Cells(32, month).Value = "0"
+        Next p
+'If it's just one section it zeros out only the section the report applies to
+            Else
+                For p = 1 To 7
+                            
+                    If Section(p).name = sectype Then
+                        Section(p).Range(month & "19:" & month & "30").Value = "0"
+                        Section(p).Cells(32, month).Value = "0"
+                    End If
+                    
+                Next p
+    End If
+    With summWB
+        For n = 2 To 8
+            For p = 1 To 7
+                    
+                If wb.Cells(6, n).Value = Section(p).name Then
+        
+                    For I = 7 To 22
+                
+                        If wb.Cells(I, "A").Value = "Emission Control Label" Then
+                            Section(p).Cells(20, month).Value = _
+                            Section(p).Cells(20, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Drayage Truck" Then
+                            Section(p).Cells(25, month).Value = _
+                            Section(p).Cells(25, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Tampered 1st Offense" Then
+                            Section(p).Cells(19, month).Value = _
+                            Section(p).Cells(19, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Tractor-Trailer Greenhouse Gas" Then
+                            Section(p).Cells(24, month).Value = _
+                            Section(p).Cells(24, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Commercial Vehicle Idling" Then
+                            Section(p).Cells(21, month).Value = _
+                            Section(p).Cells(21, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Solid Waste Collection" Then
+                            Section(p).Cells(22, month).Value = _
+                            Section(p).Cells(22, month).Value + wb.Cells(I, n).Value
+                        End If
+                    
+                        If wb.Cells(I, "A").Value = "Smoke Opacity 1st Offense" Then
+                            Section(p).Cells(19, month).Value = _
+                            Section(p).Cells(19, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Refusal" Then
+                            Section(p).Cells(19, month).Value = _
+                            Section(p).Cells(19, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Off-Road Vehicle" Then
+                            Section(p).Cells(27, month).Value = _
+                            Section(p).Cells(27, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Transport Refrigeration Unit" Then
+                            Section(p).Cells(26, month).Value = _
+                            Section(p).Cells(26, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Truck and Bus" Then
+                            Section(p).Cells(23, month).Value = _
+                            Section(p).Cells(23, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Environmental Justice" Then
+                            Section(p).Cells(32, month).Value = _
+                            Section(p).Cells(32, month).Value + wb.Cells(I, n).Value
+                        End If
+                        If wb.Cells(I, "A").Value = "HDVIP DEF" Then
+                            Section(p).Cells(28, month).Value = _
+                            Section(p).Cells(28, month).Value + wb.Cells(I, n).Value
+                        End If
+                        If wb.Cells(I, "A").Value = "Idling School Bus" Then
+                            Section(p).Cells(29, month).Value = _
+                            Section(p).Cells(29, month).Value + wb.Cells(I, n).Value
+                        End If
+                        If wb.Cells(I, "A").Value = "PAU" Then
+                            Section(p).Cells(30, month).Value = _
+                            Section(p).Cells(30, month).Value + wb.Cells(I, n).Value
+                        End If
+                    Next I
+                End If
+            Next p
+        Next n
+    End With
+
+End If
+
+'Identifies type of report so it can transfer the data to the right cells
+If summWB.Sheets("Inspections").Cells(1, "N").Value = "Vehicles" Then
+    If summWB.Sheets("Inspections").Cells(1, "O").Value = "ALL SECTIONS" Then
+'If it's all sections then it goes through each worksheet and zeros out all values for that month
+        For p = 1 To 7
+            Section(p).Range(month & "33:" & month & "35").Value = "0"
+            Section(p).Cells(37, month).Value = "0"
+        Next p
+'If it's just one section it zeros out only the section the report applies to
+            Else
+                For p = 1 To 7
+                If Section(p).name = sectype Then
+                    Section(p).Range(month & "33:" & month & "35").Value = "0"
+                    Section(p).Cells(37, month).Value = "0"
+                End If
+                Next p
+    End If
+    With summWB
+        For n = 2 To 8
+            For p = 1 To 7
+                    
+                If wb.Cells(5, n).Value = Section(p).name Then
+        
+                    For I = 6 To 22
+                        If wb.Cells(I, "A").Value = "In-State" Then
+                            Section(p).Cells(33, month).Value = _
+                            Section(p).Cells(33, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Out-of-State" Then
+                            Section(p).Cells(34, month).Value = _
+                            Section(p).Cells(34, month).Value + wb.Cells(I, n).Value
+                        End If
+                        
+                        If wb.Cells(I, "A").Value = "Environmental Justice" Then
+                            Section(p).Cells(37, month).Value = _
+                            Section(p).Cells(37, month).Value + wb.Cells(I, n).Value
+                        End If
+            
+                        If wb.Cells(I, "A").Value = "Off-Road Equipment" Then
+                            Section(p).Cells(35, month).Value = _
+                            Section(p).Cells(35, month).Value + wb.Cells(I, n).Value
+                        End If
+                    Next I
+                End If
+            Next p
+        Next n
+    End With
+
+End If
+
+'Deletes values like file name, report type, month etc. from worksheet to make it look cleaner
+With summWB
+    .Sheets("Inspections").Range("J1:O1").Clear
+    .Sheets("Inspections").Range("A30:A32").Clear
+End With
+
+Call OptimizeCode_End
+
+summWB.Save
+rptWB.Save
+
+End Sub

@@ -1,0 +1,127 @@
+Public CalcState As Long
+Public EventState As Boolean
+Public PageBreakState As Boolean
+
+Sub OptimizeCode_Begin()
+
+Application.ScreenUpdating = False
+
+EventState = Application.EnableEvents
+Application.EnableEvents = False
+
+CalcState = Application.Calculation
+Application.Calculation = xlCalculationManual
+
+PageBreakState = ActiveSheet.DisplayPageBreaks
+ActiveSheet.DisplayPageBreaks = False
+
+End Sub
+
+Sub OptimizeCode_End()
+
+ActiveSheet.DisplayPageBreaks = PageBreakState
+Application.Calculation = CalcState
+Application.EnableEvents = EventState
+Application.ScreenUpdating = True
+
+End Sub
+
+
+
+Sub Format_North()
+'
+' Format_North Macro
+'
+' This copies all the data to a new sheet and formats for easier review
+' and prompts you where to save it.
+'
+' Keyboard Shortcut: Ctrl+m
+'
+'by: Michael Sekigahama
+
+
+Dim oldWB As Workbook
+Dim newWB As Workbook
+Dim temp As Workbook
+Dim sectnm As String
+Dim month As String
+Dim rtype As String
+Dim x As String
+Dim yr As String
+
+Set oldWB = ActiveWorkbook
+
+Call OptimizeCode_Begin
+Application.DisplayAlerts = False
+
+oldWB.ActiveSheet.Select
+oldWB.ActiveSheet.name = "Inspections"
+
+'Deletes Hidden Columns
+For I = 1 To oldWB.ActiveSheet.UsedRange.Columns.Count
+    If Columns(I).Hidden = True Then
+        Debug.Print I
+        Columns(I).Delete
+        I = I - 1
+    End If
+Next
+
+Month_Select.Show
+With oldWB
+sectnm = .Sheets("Inspections").Cells(1, "O").Text
+month = .Sheets("Inspections").Cells(1, "M").Text
+rtype = .Sheets("Inspections").Cells(1, "N").Text
+x = .Sheets("Inspections").Cells(1, "K").Text
+yr = .Sheets("Inspections").Cells(1, "J").Text
+End With
+
+'Adds report section to the date range if it's all sections, otherwise not necessary
+If sectnm = "ALL SECTIONS" Then
+    Range("A3:I3").Select
+    ActiveCell.FormulaR1C1 = ActiveCell.Value & " - " & sectnm
+End If
+
+Set newWB = Workbooks.Add
+    With newWB
+        .Title = "temp"
+        .SaveAs Filename:="H:\Reports\temp.xlsx"
+    End With
+
+'Copies over to new worksheet called temp to get around the fact that
+'the download from the database had some weird setting that activated
+'a privacy inspection procedure that made it annoying to save. Copying
+'to a new workbook was the easiest way to get rid of that setting. This
+'also formats the data and adds the filters.
+
+oldWB.ActiveSheet.UsedRange.Copy
+newWB.Sheets("Sheet1").Range("A1").Select
+Selection.PasteSpecial Paste:=xlPasteAllUsingSourceTheme
+Rows("6:6").Select
+ActiveWindow.FreezePanes = True
+Range("A5").Select
+Selection.AutoFilter
+newWB.Sheets("Sheet1").UsedRange.WrapText = False
+newWB.Sheets("Sheet1").Columns("A:Z").AutoFit
+newWB.Sheets("Sheet1").Select
+newWB.Sheets("Sheet1").name = "Inspections"
+
+With Application.FileDialog(msoFileDialogSaveAs)
+    .FilterIndex = 1
+    .InitialFileName = "H:\Reports\" & yr & "_" & x & "\" & sectnm & " - " & rtype & " Dump " & month & " " & yr
+    If .Show = -1 Then .Execute
+End With
+
+oldWB.Close
+newWB.Save
+
+Unload Month_Select
+With newWB
+    .ActiveSheet.Range("J1:O1").Clear
+End With
+
+Application.DisplayAlerts = True
+Call OptimizeCode_End
+newWB.Save
+
+End Sub
+

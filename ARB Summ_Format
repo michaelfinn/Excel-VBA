@@ -1,0 +1,191 @@
+Public CalcState As Long
+Public EventState As Boolean
+Public PageBreakState As Boolean
+
+Sub OptimizeCode_Begin()
+
+Application.ScreenUpdating = False
+Application.DisplayAlerts = False
+
+EventState = Application.EnableEvents
+Application.EnableEvents = False
+
+CalcState = Application.Calculation
+Application.Calculation = xlCalculationManual
+
+PageBreakState = ActiveSheet.DisplayPageBreaks
+ActiveSheet.DisplayPageBreaks = False
+
+End Sub
+
+Sub OptimizeCode_End()
+
+ActiveSheet.DisplayPageBreaks = PageBreakState
+Application.DisplayAlerts = True
+Application.Calculation = CalcState
+Application.EnableEvents = EventState
+Application.ScreenUpdating = True
+
+End Sub
+
+
+
+Sub Format_Summ()
+'
+' Summ_Format Macro
+'
+' Keyboard Shortcut: Ctrl+j
+'
+Dim oldWB As Workbook
+Dim newWB As Workbook
+Dim rptWB As Workbook
+Dim temp As Workbook
+Dim sectnm As String
+Dim month As String
+Dim rtype As String
+Dim x As String
+Dim yr As String
+
+Set oldWB = ActiveWorkbook
+
+Call OptimizeCode_Begin
+Application.DisplayAlerts = False
+
+oldWB.ActiveSheet.Select
+oldWB.ActiveSheet.name = "Inspections"
+
+'Deletes Hidden Columns
+For I = 1 To oldWB.ActiveSheet.UsedRange.Columns.Count
+    If Columns(I).Hidden = True Then
+        Debug.Print I
+        Columns(I).Delete
+        I = I - 1
+    End If
+Next
+
+
+
+Month_Select.Show
+With oldWB
+sectnm = .Sheets("Inspections").Cells(1, "O").Text
+month = .Sheets("Inspections").Cells(1, "M").Text
+rtype = .Sheets("Inspections").Cells(1, "N").Text
+x = .Sheets("Inspections").Cells(1, "K").Text
+yr = .Sheets("Inspections").Cells(1, "J").Text
+'The below line removes any trailing spaces in the cell values as the report download comes
+'with some randomly in the cell values, ruins the macro later. This fixes that problem.
+.Sheets("Inspections").[A6:A22] = [Index(Trim(A6:A22),)]
+End With
+
+'This part deletes the 4th row for vehicle reports because for some reason there's an extra blank row in vehicle reports
+'that doesn't exist in the other ones. This effects how the rest of the macro works because the headers have to be in
+'in the 5th row and if you don't delete a row then for vehicle reports the header is in the 6th row
+If oldWB.Sheets("Inspections").Cells(1, "N").Value = "Vehicles" Then
+    oldWB.Sheets("Inspections").Rows(4).Delete
+End If
+
+'This bit unmerges a formatting issue of column F and G being merged for some reason.
+'This code can be deleted if that formatting is ever fixed.
+If oldWB.Sheets("Inspections").Cells(1, "N").Value <> "Citations" Then
+    Range("F5:G22").Select
+    Selection.UnMerge
+    Range("G5:G22").Select
+    Selection.Delete Shift:=xlToLeft
+End If
+
+'Adds report section to the date range if it's all sections, otherwise not necessary
+If sectnm = "ALL SECTIONS" Then
+    Range("A3:D3").Select
+    Selection.Value = ActiveCell.Value & " - " & sectnm
+End If
+
+
+'Below code was used when the in-state out-of-state info was not included in report
+'If rtype = "Vehicles" Then
+'    Sheets("Inspections").Rows("6:7").EntireRow.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromRightOrBelow
+'    Sheets("Inspections").Cells(6, "A").Value = "In-State"
+'    Sheets("Inspections").Cells(7, "A").Value = "Out-of-State"
+'    Sheets("Inspections").Cells(9, "B").Formula = "=SUM(B6:B7)"
+'    Sheets("Inspections").Cells(6, "C").Formula = "=B6"
+'    Sheets("Inspections").Cells(7, "C").Formula = "=B7"
+'End If
+
+Set newWB = Workbooks.Add
+    With newWB
+        .Title = "temp"
+        .SaveAs Filename:="H:\H Drive\Reports\temp.xlsx"
+    End With
+
+'Copies over to new worksheet called temp to get around the fact that
+'the download from the database had some weird setting that activated
+'a privacy inspection procedure that made it annoying to save. Copying
+'to a new workbook was the easiest way to get rid of that setting. This
+'also formats the data and adds the filters.
+
+oldWB.ActiveSheet.UsedRange.Copy
+newWB.Sheets("Sheet1").Range("A1").Select
+Selection.PasteSpecial Paste:=xlPasteAllUsingSourceTheme
+newWB.Sheets("Sheet1").UsedRange.WrapText = False
+With newWB.Sheets("Sheet1")
+    .Range("A1").ColumnWidth = 22.45
+    .Range("B1").ColumnWidth = 11
+    .Range("C1").ColumnWidth = 11
+    .Range("D1").ColumnWidth = 11
+    .Range("E1").ColumnWidth = 11
+    .Range("F1").ColumnWidth = 11
+    .Range("G1").ColumnWidth = 11
+    .Range("H1").ColumnWidth = 11
+    .Range("I1").ColumnWidth = 11
+    .Range("J1").ColumnWidth = 11
+End With
+
+
+With newWB.Sheets("Sheet1")
+    .PageSetup.PrintArea = newWB.Sheets("Sheet1").Range("A1:I22").Address
+    .PageSetup.Orientation = xlLandscape
+    .PageSetup.LeftMargin = Application.InchesToPoints(0.75)
+    .PageSetup.RightMargin = Application.InchesToPoints(0.5)
+    .PageSetup.TopMargin = Application.InchesToPoints(0.75)
+    .PageSetup.BottomMargin = Application.InchesToPoints(0.5)
+    .PageSetup.HeaderMargin = Application.InchesToPoints(0.25)
+    .PageSetup.FooterMargin = Application.InchesToPoints(0.25)
+    
+End With
+
+newWB.Sheets("Sheet1").Select
+newWB.Sheets("Sheet1").name = "Inspections"
+
+With Application.FileDialog(msoFileDialogSaveAs)
+    .FilterIndex = 1
+    .InitialFileName = "H:\Reports\" & yr & "_" & x & "\" & sectnm & " - " & rtype & " Summary " & month & " " & yr
+    '.InitialFileName = "H:\Reports\" & Format(Date, "yyyy") & "_" & x & "\" & sectnm & " - " & rtype & " Summary " & month & " " & Format(Date, "yyyy")
+    If .Show = -1 Then .Execute
+End With
+
+oldWB.Close
+newWB.Sheets("Inspections").Range("A30").Value = newWB.name
+newWB.Sheets("Inspections").Range("A1").Select
+newWB.Save
+'newWB.PrintPreview
+
+With Application.FileDialog(msoFileDialogOpen)
+    .InitialFileName = "H:\Reports\"
+    If .Show = -1 Then .Execute
+End With
+
+Set rptWB = Application.ActiveWorkbook
+newWB.Sheets("Inspections").Range("A31").Value = rptWB.name
+
+Unload Month_Select
+
+'With newWB
+'    .Sheets("Inspections").Range("K1:O1").Clear
+'    .Sheets("Inspections").Range("A30:A32").Clear
+'End With
+'newWB.Close
+
+
+Application.DisplayAlerts = True
+Call OptimizeCode_End
+
+End Sub

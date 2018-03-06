@@ -1,0 +1,19 @@
+
+Sub FillValue()
+'updateby Extendoffice 20151228
+    Dim xRg As Range
+    Dim xCell As Range
+    Dim xTxt As String
+    Dim xVal As Long
+    Dim I As Long
+    On Error Resume Next
+    xTxt = ActiveWindow.RangeSelection.Address
+    Set xRg = Application.InputBox("Please select the data range", "Kutools for Excel", xTxt, , , , , 8)
+    Set xRg = xRg.SpecialCells(xlVisible)
+    Debug.Print xRg.Address
+    If xRg Is Nothing Then Exit Sub
+    For Each xCell In xRg
+        xVal = xVal + 1
+        xCell = xVal
+    Next
+End Sub

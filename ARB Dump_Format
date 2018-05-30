@@ -48,6 +48,8 @@ Dim month As String
 Dim rtype As String
 Dim x As String
 Dim yr As String
+Dim lrow As Long
+
 
 Set oldWB = ActiveWorkbook
 
@@ -68,24 +70,40 @@ Next
 
 Month_Select.Show
 With oldWB
-sectnm = .Sheets("Inspections").Cells(1, "O").Text
-month = .Sheets("Inspections").Cells(1, "M").Text
-rtype = .Sheets("Inspections").Cells(1, "N").Text
-x = .Sheets("Inspections").Cells(1, "K").Text
-yr = .Sheets("Inspections").Cells(1, "J").Text
+sectnm = .Sheets("Inspections").Cells(1, "AF").Text
+month = .Sheets("Inspections").Cells(1, "AE").Text
+rtype = .Sheets("Inspections").Cells(1, "AD").Text
+x = .Sheets("Inspections").Cells(1, "AC").Text
+yr = .Sheets("Inspections").Cells(1, "AB").Text
 End With
 
 'Adds report section to the date range if it's all sections, otherwise not necessary
 If sectnm = "ALL SECTIONS" Then
-    Range("A3:I3").Select
+    Range("A2:AA2").Select
     ActiveCell.FormulaR1C1 = ActiveCell.Value & " - " & sectnm
 End If
+
+'This part unmerges columns that inexplicably merged in the vehicle dump report, these cells stopped being merged
+'so I've taken this code out of the service but left in case I need it again in the future.
+'If rtype = "Vehicles" Then
+    'Finds last used row number in the whole sheet
+'    lrow = Cells.Find(What:="*", After:=Range("A1"), LookAt:=xlPart, LookIn:=xlFormulas, _
+'                    SearchOrder:=xlByRows, SearchDirection:=xlPrevious, MatchCase:=False).Row
+'    Range("H5:I" & lrow).Select
+'    Selection.UnMerge
+'    Range("I5:I" & lrow).Select
+'    Selection.Delete Shift:=xlToLeft
+'End If
+
+oldWB.Sheets("Inspections").Columns("A:AA").AutoFit
 
 Set newWB = Workbooks.Add
     With newWB
         .Title = "temp"
-        .SaveAs Filename:="H:\Reports\temp.xlsx"
+        .SaveAs Filename:="H:\H Drive\Reports\temp.xlsx"
     End With
+    
+
 
 'Copies over to new worksheet called temp to get around the fact that
 'the download from the database had some weird setting that activated
@@ -96,18 +114,27 @@ Set newWB = Workbooks.Add
 oldWB.ActiveSheet.UsedRange.Copy
 newWB.Sheets("Sheet1").Range("A1").Select
 Selection.PasteSpecial Paste:=xlPasteAllUsingSourceTheme
-Rows("6:6").Select
+Rows("5:5").Select
 ActiveWindow.FreezePanes = True
 Range("A5").Select
 Selection.AutoFilter
 newWB.Sheets("Sheet1").UsedRange.WrapText = False
-newWB.Sheets("Sheet1").Columns("A:Z").AutoFit
-newWB.Sheets("Sheet1").Select
+newWB.Sheets("Sheet1").UsedRange.UnMerge
+newWB.Sheets("Sheet1").Range("A5").ColumnWidth = 12.14
+newWB.Sheets("Sheet1").Columns("B:S").AutoFit
+newWB.Sheets("Sheet1").Range("T5").ColumnWidth = 50#
+'newWB.Sheets("Sheet1").Select
 newWB.Sheets("Sheet1").name = "Inspections"
+newWB.Sheets("Inspections").Range("D:D").NumberFormat = "dd/mm/yyyy"
+
+lrow = Workbooks("temp.xlsx").Sheets("Inspections").Range("A" & Rows.Count).End(xlUp).Row
+
+newWB.Sheets("Inspections").Cells(lrow, "A").Cut Range("A3")
+
 
 With Application.FileDialog(msoFileDialogSaveAs)
     .FilterIndex = 1
-    .InitialFileName = "H:\Reports\" & yr & "_" & x & "\" & sectnm & " - " & rtype & " Dump " & month & " " & yr
+    .InitialFileName = "H:\H Drive\Reports\" & yr & "_" & x & "\" & sectnm & " - " & rtype & " Dump " & month & " " & yr
     If .Show = -1 Then .Execute
 End With
 
@@ -116,7 +143,9 @@ newWB.Save
 
 Unload Month_Select
 With newWB
-    .ActiveSheet.Range("J1:O1").Clear
+    .ActiveSheet.Range("AB1:AG1").Clear
+    .Sheets("Inspections").Columns("A").ColumnWidth = 10
+    .Sheets("Inspections").Columns("B:AA").AutoFit
 End With
 
 Application.DisplayAlerts = True

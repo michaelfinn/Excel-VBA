@@ -5,6 +5,7 @@ Public PageBreakState As Boolean
 Sub OptimizeCode_Begin()
 
 Application.ScreenUpdating = False
+Application.DisplayAlerts = False
 
 EventState = Application.EnableEvents
 Application.EnableEvents = False
@@ -24,6 +25,7 @@ CalcState = Application.Calculation
 Application.Calculation = xlCalculationAutomatic
 Application.EnableEvents = EventState
 Application.ScreenUpdating = True
+Application.DisplayAlerts = True
 
 End Sub
 
@@ -72,16 +74,16 @@ Set Section(5) = rptWB.Sheets("BAAQMD")
 Set Section(6) = rptWB.Sheets("DEES")
 Set Section(7) = rptWB.Sheets("STBES")
 
-month = summWB.Sheets("Inspections").Range("L1").Value
-sectype = summWB.Sheets("Inspections").Range("O1").Value
+month = summWB.Sheets("Inspections").Cells(1, "AG").Value
+sectype = summWB.Sheets("Inspections").Cells(1, "AF").Value
 
 Call OptimizeCode_Begin
 
 'Month_Select.Show
 
 'Identifies type of report so it can transfer the data to the right cells for ALL SECTIONS
-If summWB.Sheets("Inspections").Cells(1, "N").Value = "Inspections" Then
-    If summWB.Sheets("Inspections").Cells(1, "O").Value = "ALL SECTIONS" Then
+If summWB.Sheets("Inspections").Cells(1, "AD").Value = "Inspections" Then
+    If summWB.Sheets("Inspections").Cells(1, "AF").Value = "ALL SECTIONS" Then
 'If it's all sections then it goes through each worksheet and zeros out all values for that month
             For p = 1 To 7
                 Section(p).Range(month & "5:" & month & "16").Value = "0"
@@ -193,8 +195,8 @@ If summWB.Sheets("Inspections").Cells(1, "N").Value = "Inspections" Then
 End If
 
 'Identifies type of report so it can transfer the data to the right cells
-If summWB.Sheets("Inspections").Cells(1, "N").Value = "Citations" Then
-    If summWB.Sheets("Inspections").Cells(1, "O").Value = "ALL SECTIONS" Then
+If summWB.Sheets("Inspections").Cells(1, "AD").Value = "Citations" Then
+    If summWB.Sheets("Inspections").Cells(1, "AF").Value = "ALL SECTIONS" Then
 'If it's all sections then it goes through each worksheet and zeros out all values for that month
         For p = 1 To 7
             Section(p).Range(month & "19:" & month & "30").Value = "0"
@@ -215,9 +217,9 @@ If summWB.Sheets("Inspections").Cells(1, "N").Value = "Citations" Then
         For n = 2 To 8
             For p = 1 To 7
                     
-                If wb.Cells(6, n).Value = Section(p).name Then
+                If wb.Cells(5, n).Value = Section(p).name Then
         
-                    For I = 7 To 22
+                    For I = 6 To 22
                 
                         If wb.Cells(I, "A").Value = "Emission Control Label" Then
                             Section(p).Cells(20, month).Value = _
@@ -299,8 +301,8 @@ If summWB.Sheets("Inspections").Cells(1, "N").Value = "Citations" Then
 End If
 
 'Identifies type of report so it can transfer the data to the right cells
-If summWB.Sheets("Inspections").Cells(1, "N").Value = "Vehicles" Then
-    If summWB.Sheets("Inspections").Cells(1, "O").Value = "ALL SECTIONS" Then
+If summWB.Sheets("Inspections").Cells(1, "AD").Value = "Vehicles" Then
+    If summWB.Sheets("Inspections").Cells(1, "AF").Value = "ALL SECTIONS" Then
 'If it's all sections then it goes through each worksheet and zeros out all values for that month
         For p = 1 To 7
             Section(p).Range(month & "33:" & month & "35").Value = "0"
@@ -351,7 +353,7 @@ End If
 
 'Deletes values like file name, report type, month etc. from worksheet to make it look cleaner
 With summWB
-    .Sheets("Inspections").Range("J1:O1").Clear
+    .Sheets("Inspections").Range("AB1:AG1").Clear
     .Sheets("Inspections").Range("A30:A32").Clear
 End With
 

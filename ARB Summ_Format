@@ -49,7 +49,7 @@ Dim yr As String
 Set oldWB = ActiveWorkbook
 
 Call OptimizeCode_Begin
-Application.DisplayAlerts = False
+
 
 oldWB.ActiveSheet.Select
 oldWB.ActiveSheet.name = "Inspections"
@@ -67,26 +67,45 @@ Next
 
 Month_Select.Show
 With oldWB
-sectnm = .Sheets("Inspections").Cells(1, "O").Text
-month = .Sheets("Inspections").Cells(1, "M").Text
-rtype = .Sheets("Inspections").Cells(1, "N").Text
-x = .Sheets("Inspections").Cells(1, "K").Text
-yr = .Sheets("Inspections").Cells(1, "J").Text
+sectnm = .Sheets("Inspections").Cells(1, "AF").Text
+month = .Sheets("Inspections").Cells(1, "AE").Text
+rtype = .Sheets("Inspections").Cells(1, "AD").Text
+x = .Sheets("Inspections").Cells(1, "AC").Text
+yr = .Sheets("Inspections").Cells(1, "AB").Text
 'The below line removes any trailing spaces in the cell values as the report download comes
 'with some randomly in the cell values, ruins the macro later. This fixes that problem.
 .Sheets("Inspections").[A6:A22] = [Index(Trim(A6:A22),)]
+.Sheets("Inspections").Cells(1, "A").Select
+    With Selection
+        .MergeCells = False
+        .WrapText = False
+    End With
+.Sheets("Inspections").Cells(3, "A").Select
+    With Selection
+        .MergeCells = False
+        .WrapText = False
+    End With
 End With
 
 'This part deletes the 4th row for vehicle reports because for some reason there's an extra blank row in vehicle reports
 'that doesn't exist in the other ones. This effects how the rest of the macro works because the headers have to be in
 'in the 5th row and if you don't delete a row then for vehicle reports the header is in the 6th row
-If oldWB.Sheets("Inspections").Cells(1, "N").Value = "Vehicles" Then
+If oldWB.Sheets("Inspections").Cells(1, "AD").Value = "Vehicles" Then
     oldWB.Sheets("Inspections").Rows(4).Delete
 End If
-
+If oldWB.Sheets("Inspections").Cells(1, "AD").Value = "Citations" Then
+    oldWB.Sheets("Inspections").Rows(4).Delete
+End If
 'This bit unmerges a formatting issue of column F and G being merged for some reason.
 'This code can be deleted if that formatting is ever fixed.
-If oldWB.Sheets("Inspections").Cells(1, "N").Value <> "Citations" Then
+If oldWB.Sheets("Inspections").Cells(1, "AD").Value = "Inspections" Then
+    Range("F5:G22").Select
+    Selection.UnMerge
+    Range("G5:G22").Select
+    Selection.Delete Shift:=xlToLeft
+End If
+
+If oldWB.Sheets("Inspections").Cells(1, "AD").Value = "Vehicles" Then
     Range("F5:G22").Select
     Selection.UnMerge
     Range("G5:G22").Select
@@ -95,7 +114,7 @@ End If
 
 'Adds report section to the date range if it's all sections, otherwise not necessary
 If sectnm = "ALL SECTIONS" Then
-    Range("A3:D3").Select
+    Cells(3, "A").Select
     Selection.Value = ActiveCell.Value & " - " & sectnm
 End If
 
@@ -157,7 +176,7 @@ newWB.Sheets("Sheet1").name = "Inspections"
 
 With Application.FileDialog(msoFileDialogSaveAs)
     .FilterIndex = 1
-    .InitialFileName = "H:\Reports\" & yr & "_" & x & "\" & sectnm & " - " & rtype & " Summary " & month & " " & yr
+    .InitialFileName = "H:\H Drive\Reports\" & yr & "_" & x & "\" & sectnm & " - " & rtype & " Summary " & month & " " & yr
     '.InitialFileName = "H:\Reports\" & Format(Date, "yyyy") & "_" & x & "\" & sectnm & " - " & rtype & " Summary " & month & " " & Format(Date, "yyyy")
     If .Show = -1 Then .Execute
 End With
@@ -168,15 +187,22 @@ newWB.Sheets("Inspections").Range("A1").Select
 newWB.Save
 'newWB.PrintPreview
 
-With Application.FileDialog(msoFileDialogOpen)
-    .InitialFileName = "H:\Reports\"
-    If .Show = -1 Then .Execute
-End With
+''' The below message box was inserted because I didn't always want to open the yearly report
+''' every time I was formatting a downloaded summary report
 
-Set rptWB = Application.ActiveWorkbook
-newWB.Sheets("Inspections").Range("A31").Value = rptWB.name
+If MsgBox("Do you want to open the annual report?", vbQuestion + vbYesNo, "Incoming Query...") = vbYes Then
+    With Application.FileDialog(msoFileDialogOpen)
+    .InitialFileName = "H:\H Drive\Reports\"
+    If .Show = -1 Then .Execute
+    End With
+
+    Set rptWB = Application.ActiveWorkbook
+    newWB.Sheets("Inspections").Range("A31").Value = rptWB.name
+Else
+End If
 
 Unload Month_Select
+
 
 'With newWB
 '    .Sheets("Inspections").Range("K1:O1").Clear
